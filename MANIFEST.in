@@ -1,0 +1,3 @@
+recursive-include src/msl/skills *.md
+include LICENSE
+include README.md
