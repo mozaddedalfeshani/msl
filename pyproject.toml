@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "msl"
-version = "0.1.2"
+version = "0.1.3"
 description = "MSL — Muradian Skill Languages: Generate platform-specific skill files for AI coding assistants"
 readme = "README.md"
 license = {text = "MIT"}
