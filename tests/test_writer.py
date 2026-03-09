@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 
 from msl.models import Platform, PreferenceTier, ProjectType, SkillGenContext
-from msl.writer import generate_skill_file
+from msl.writer import generate_skill_file, render_skill_content
 
 
 def _make_ctx(tmp: Path, platform: Platform = Platform.CURSOR) -> SkillGenContext:
@@ -58,6 +58,28 @@ def test_generate_overwrite_prompt_decline(monkeypatch):
             assert False, "Should have raised FileExistsError"
         except FileExistsError:
             pass
+
+
+def test_render_skill_content_returns_rendered_text():
+    with tempfile.TemporaryDirectory() as tmp:
+        ctx = _make_ctx(Path(tmp))
+        rendered = render_skill_content(ctx)
+        assert isinstance(rendered, str)
+        assert rendered.strip() != ""
+
+
+def test_generate_force_overwrites_without_prompt(monkeypatch):
+    with tempfile.TemporaryDirectory() as tmp:
+        ctx = _make_ctx(Path(tmp))
+        output_path = generate_skill_file(ctx)
+        output_path.write_text("old content", encoding="utf-8")
+
+        def _fail_if_called(*args, **kwargs):
+            raise AssertionError("prompt should not be called in force mode")
+
+        monkeypatch.setattr("msl.writer.questionary.confirm", _fail_if_called)
+        generate_skill_file(ctx, force=True)
+        assert output_path.read_text(encoding="utf-8") != "old content"
 
 
 class _FakeConfirmNo:

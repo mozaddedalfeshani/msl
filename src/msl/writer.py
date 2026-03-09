@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from pathlib import Path
 
 import questionary
@@ -18,25 +17,9 @@ _STYLE = questionary.Style(
 )
 
 
-def generate_skill_file(ctx: SkillGenContext, scan: ProjectScan | None = None) -> Path:
-    output_path = ctx.output_path
-    output_dir = get_output_dir(ctx.target_platform, ctx.project_path)
-
-    # Safe overwrite check
-    if output_path.exists():
-        overwrite = questionary.confirm(
-            f"File already exists at {output_path}. Overwrite?",
-            default=False,
-            style=_STYLE,
-        ).ask()
-        if not overwrite:
-            raise FileExistsError(f"Aborted: {output_path} already exists")
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-
+def render_skill_content(ctx: SkillGenContext, scan: ProjectScan | None = None) -> str:
     content = get_template_content(ctx.project_type, ctx.preference_tier)
 
-    # Build scan context for template injection
     scan_context = {}
     frameworks = []
     if scan:
@@ -48,7 +31,7 @@ def generate_skill_file(ctx: SkillGenContext, scan: ProjectScan | None = None) -
             scan_context["Languages"] = ", ".join(scan.languages)
         frameworks = scan.frameworks[:10]
 
-    rendered = render_template(
+    return render_template(
         content,
         {
             "platform": ctx.target_platform.display_name,
@@ -58,6 +41,30 @@ def generate_skill_file(ctx: SkillGenContext, scan: ProjectScan | None = None) -
         frameworks=frameworks,
         scan_context=scan_context,
     )
+
+
+def generate_skill_file(
+    ctx: SkillGenContext,
+    scan: ProjectScan | None = None,
+    *,
+    force: bool = False,
+) -> Path:
+    output_path = ctx.output_path
+    output_dir = get_output_dir(ctx.target_platform, ctx.project_path)
+
+    # Safe overwrite check
+    if output_path.exists() and not force:
+        overwrite = questionary.confirm(
+            f"File already exists at {output_path}. Overwrite?",
+            default=False,
+            style=_STYLE,
+        ).ask()
+        if not overwrite:
+            raise FileExistsError(f"Aborted: {output_path} already exists")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    rendered = render_skill_content(ctx, scan)
 
     output_path.write_text(rendered, encoding="utf-8")
     return output_path

@@ -6,7 +6,7 @@ Generate platform-specific skill/rule files for AI coding assistants with one co
 
 `msl` is a CLI tool intended to be installed for global use.
 
-Preferred for CLI tools:
+Optional if `pipx` is already installed on your machine:
 
 ```bash
 pipx install msl
@@ -91,6 +91,16 @@ The wizard will:
 6. **Ask** your preference level (Simple → Industry Standard)
 7. **Generate** the correct file in the right location with project-aware content
 
+You can also use `msl` non-interactively in scripts and CI:
+
+```bash
+msl --platform vscode --project-type python --preference intermediate --project-path .
+msl --platform cursor --project-type nextjs --preference industry_standard --stdout
+msl --perfect --project-path .
+msl --gph
+msl --gbs
+```
+
 ```
 ╭──────────────────────────────────────╮
 │  MSL — Muradian Skill Languages     │
@@ -143,6 +153,12 @@ The wizard will:
 - **Context injection**: Appends detected project name, frameworks, and package manager to the generated file
 - **Correct conventions**: Uses each platform's real config file path — not a generic filename
 - **Safe writes**: Always asks before overwriting existing files
+- **Scriptable CLI**: Generate files directly from shell scripts, CI jobs, or editor tasks with flags
+- **Stdout mode**: Preview or pipe generated output without writing a file
+- **Force overwrite**: Replace an existing generated file without interactive prompts when running automation
+- **Perfect scripts mode**: Add a practical test/format/build script pack to `package.json` for web projects
+- **Fast git push helper**: Prompt for a commit message and immediately add, commit, and push with `--gph`
+- **Fast branch helper**: Prompt for a branch name and immediately create and switch with `--gbs`
 
 ## CLI Options
 
@@ -150,7 +166,19 @@ The wizard will:
 msl              # Run the interactive wizard
 msl --version    # Show version
 msl --help       # Show help
+msl --list-options
+msl --platform vscode --project-type python --preference simple --project-path .
+msl --platform cursor --project-type nextjs --preference industry_standard --stdout
+msl --perfect --project-path .
+msl --gph
+msl --gbs
 ```
+
+`msl --perfect` inspects your existing `package.json` and adds sensible scripts like `test`, `test:watch`, `format`, `format:check`, `postbuild`, `prepare`, and a composed `fulltest` command when the required tools are already present.
+
+`msl --gph` is the simpler git helper flow: it asks only for the git commit message, then runs `git add .`, `git commit`, and `git push` immediately.
+
+`msl --gbs` asks for a new branch name, then runs `git checkout -b <branch>` so the branch is created from the current branch and switched immediately.
 
 ## Development
 
@@ -187,7 +215,7 @@ MIT
 
 ### ইনস্টল
 
-CLI tool-এর জন্য preferred option:
+`pipx` যদি আগে থেকেই install করা থাকে, optional option:
 
 ```bash
 pipx install msl
@@ -266,6 +294,9 @@ msl
 5. project type suggest করবে
 6. preference level নিতে বলবে, যেমন Simple, Intermediate, Industry Standard
 7. শেষে সঠিক path-এ সঠিক file generate করবে
+8. চাইলে `--perfect` দিয়ে `package.json` scripts update করতে পারবে
+9. চাইলে `--gph` দিয়ে শুধু commit message দিয়ে সরাসরি push flow চালাতে পারবে
+10. চাইলে `--gbs` দিয়ে নতুন branch create করে সঙ্গে সঙ্গে switch করতে পারবে
 
 ### Supported Platforms
 
