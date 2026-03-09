@@ -41,9 +41,9 @@ dependencies = [
 msl = "msl.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/murad/msl"
-Repository = "https://github.com/murad/msl"
-Issues = "https://github.com/murad/msl/issues"
+Homepage = "https://github.com/mozaddedalfeshani/msl"
+Repository = "https://github.com/mozaddedalfeshani/msl"
+Issues = "https://github.com/mozaddedalfeshani/msl/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
