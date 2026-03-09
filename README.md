@@ -114,6 +114,22 @@ python3 -m pip install -e .
 msl
 ```
 
+## Publish
+
+Build the package first:
+
+```bash
+python3 -m build
+```
+
+Create a local `.pypi-token` file in the project root with your PyPI API token. This file is ignored by Git.
+
+Then upload with:
+
+```bash
+./scripts/upload_pypi.sh
+```
+
 ## License
 
 MIT

@@ -31,3 +31,6 @@ htmlcov/
 
 # Build
 *.tar.gz
+
+# PyPI publishing
+.pypi-token
