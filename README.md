@@ -4,8 +4,28 @@ Generate platform-specific skill/rule files for AI coding assistants with one co
 
 ## Install
 
+`msl` is a CLI tool intended to be installed for global use.
+
+Install from PyPI for user-global use:
+
 ```bash
-pip install msl
+python3 -m pip install --user msl
+```
+
+Install from a local checkout for user-global use:
+
+```bash
+python3 -m pip install --user --upgrade setuptools wheel
+python3 -m pip install --user --no-build-isolation .
+```
+
+If `msl` installs successfully but the command is not found, add your user Python bin directory to `PATH`.
+
+macOS with Python 3.9:
+
+```bash
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+source ~/.zshrc
 ```
 
 ## Usage
@@ -90,7 +110,7 @@ msl --help       # Show help
 ```bash
 git clone https://github.com/murad/msl.git
 cd msl
-pip install -e .
+python3 -m pip install -e .
 msl
 ```
 
