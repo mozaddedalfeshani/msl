@@ -45,12 +45,12 @@ The wizard will:
 
 ## Supported Platforms
 
-| Platform    | Output Path                          |
-| ----------- | ------------------------------------ |
-| Cursor      | `.cursor/rules.md`                   |
-| VS Code     | `.github/copilot-instructions.md`    |
-| Claude Code | `CLAUDE.md`                          |
-| Codex       | `AGENTS.md`                          |
+| Platform    | Output Path                       |
+| ----------- | --------------------------------- |
+| Cursor      | `.cursor/rules.md`                |
+| VS Code     | `.github/copilot-instructions.md` |
+| Claude Code | `CLAUDE.md`                       |
+| Codex       | `AGENTS.md`                       |
 
 ## Supported Project Types
 
@@ -64,11 +64,11 @@ The wizard will:
 
 ## Preference Levels
 
-| Level               | What it includes                              |
-| ------------------- | --------------------------------------------- |
-| Simple              | Clean code basics, modular structure           |
-| Intermediate        | Patterns, testing, conventions, data layer     |
-| Industry Standard   | Full architecture, CI/CD, security, observability |
+| Level             | What it includes                                  |
+| ----------------- | ------------------------------------------------- |
+| Simple            | Clean code basics, modular structure              |
+| Intermediate      | Patterns, testing, conventions, data layer        |
+| Industry Standard | Full architecture, CI/CD, security, observability |
 
 ## Smart Features
 
