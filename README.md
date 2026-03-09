@@ -117,3 +117,64 @@ msl
 ## License
 
 MIT
+
+## বাংলা
+
+`msl` একটি CLI টুল, যা AI coding assistant-এর জন্য সঠিক skill বা rule file সঠিক জায়গায় তৈরি করে দেয়। আলাদা প্ল্যাটফর্মে কোন ফাইল কোথায় যাবে তা মনে রাখার দরকার নেই।
+
+### ইনস্টল
+
+PyPI থেকে user-global install:
+
+```bash
+python3 -m pip install --user msl
+```
+
+লোকাল source code থেকে user-global install:
+
+```bash
+python3 -m pip install --user --upgrade setuptools wheel
+python3 -m pip install --user --no-build-isolation .
+```
+
+যদি install সফল হয় কিন্তু `msl` command না পাওয়া যায়, তাহলে user Python bin path `PATH`-এ যোগ করুন।
+
+macOS with Python 3.9:
+
+```bash
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+source ~/.zshrc
+```
+
+### ব্যবহার
+
+```bash
+msl
+```
+
+এই wizard যা করবে:
+
+1. আপনার environment detect করবে, যেমন Node.js, Cursor, VS Code, Claude Code, Codex
+2. project scan করে framework, language এবং package manager চিনবে
+3. কোন platform-এর জন্য file generate করবেন তা জিজ্ঞেস করবে
+4. project path নেবে, current directory অথবা custom path
+5. project type suggest করবে
+6. preference level নিতে বলবে, যেমন Simple, Intermediate, Industry Standard
+7. শেষে সঠিক path-এ সঠিক file generate করবে
+
+### Supported Platforms
+
+- Cursor: `.cursor/rules.md`
+- VS Code: `.github/copilot-instructions.md`
+- Claude Code: `CLAUDE.md`
+- Codex: `AGENTS.md`
+
+### Supported Project Types
+
+- Flutter
+- Web (Next.js)
+- Web (React/Vite)
+- Rust (Server)
+- Node.js (Server)
+- Python
+- Go (Server)
