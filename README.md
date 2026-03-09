@@ -6,25 +6,72 @@ Generate platform-specific skill/rule files for AI coding assistants with one co
 
 `msl` is a CLI tool intended to be installed for global use.
 
+Preferred for CLI tools:
+
+```bash
+pipx install msl
+```
+
 Install from PyPI for user-global use:
+
+macOS/Linux:
 
 ```bash
 python3 -m pip install --user msl
 ```
 
+Cross-platform when `python` points to Python 3:
+
+```bash
+python -m pip install --user msl
+```
+
+Windows:
+
+```bash
+py -m pip install --user msl
+```
+
 Install from a local checkout for user-global use:
+
+macOS/Linux:
 
 ```bash
 python3 -m pip install --user --upgrade setuptools wheel
 python3 -m pip install --user --no-build-isolation .
 ```
 
-If `msl` installs successfully but the command is not found, add your user Python bin directory to `PATH`.
+Cross-platform when `python` points to Python 3:
 
-macOS with Python 3.9:
+```bash
+python -m pip install --user --upgrade setuptools wheel
+python -m pip install --user --no-build-isolation .
+```
+
+Windows:
+
+```bash
+py -m pip install --user --upgrade setuptools wheel
+py -m pip install --user --no-build-isolation .
+```
+
+If `msl` installs successfully but the command is not found, make sure your Python user scripts directory is on `PATH`.
+
+Linux example:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+macOS example with system Python 3.9:
 
 ```bash
 export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+```
+
+Then reload your shell:
+
+```bash
 source ~/.zshrc
 ```
 
@@ -140,22 +187,64 @@ MIT
 
 ### ইনস্টল
 
+CLI tool-এর জন্য preferred option:
+
+```bash
+pipx install msl
+```
+
 PyPI থেকে user-global install:
+
+macOS/Linux:
 
 ```bash
 python3 -m pip install --user msl
 ```
 
+`python` যদি Python 3-এ point করে:
+
+```bash
+python -m pip install --user msl
+```
+
+Windows:
+
+```bash
+py -m pip install --user msl
+```
+
 লোকাল source code থেকে user-global install:
+
+macOS/Linux:
 
 ```bash
 python3 -m pip install --user --upgrade setuptools wheel
 python3 -m pip install --user --no-build-isolation .
 ```
 
-যদি install সফল হয় কিন্তু `msl` command না পাওয়া যায়, তাহলে user Python bin path `PATH`-এ যোগ করুন।
+`python` যদি Python 3-এ point করে:
 
-macOS with Python 3.9:
+```bash
+python -m pip install --user --upgrade setuptools wheel
+python -m pip install --user --no-build-isolation .
+```
+
+Windows:
+
+```bash
+py -m pip install --user --upgrade setuptools wheel
+py -m pip install --user --no-build-isolation .
+```
+
+যদি install সফল হয় কিন্তু `msl` command না পাওয়া যায়, তাহলে Python user scripts path `PATH`-এ যোগ করুন।
+
+Linux example:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+macOS with system Python 3.9:
 
 ```bash
 export PATH="$HOME/Library/Python/3.9/bin:$PATH"
