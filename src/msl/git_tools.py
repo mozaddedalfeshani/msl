@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+import requests
 from rich.console import Console
 
 console = Console()
@@ -99,36 +100,58 @@ def create_and_switch_branch(cwd: Path, branch_name: str | None = None) -> str:
 
 # ── AI commit message generation ──────────────────────────────────────────
 
+MSL_SERVER_URL = "https://apicommit.umartco.net"
+
+
+def _generate_via_server(changed_files: list[str], diff_summary: str) -> str:
+    """Call the MSL server POST /v1/api/commit endpoint."""
+    url = f"{MSL_SERVER_URL.rstrip('/')}/v1/api/commit"
+    resp = requests.post(
+        url,
+        json={"files": changed_files, "diff": diff_summary},
+        timeout=35,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    if "error" in data:
+        raise RuntimeError(data["error"])
+    return data["message"].strip().strip("`\"'")
+
 
 def generate_commit_message(cwd: Path, api_key: str) -> str:
-    """Ask DeepSeek to write a commit message based on the actual diff."""
-    from .ai_generator import call_deepseek
-
+    """Ask MSL server (or DeepSeek directly as fallback) for a commit message."""
     changed_files = get_changed_files(cwd)
     diff_summary = get_diff_summary(cwd)
 
+    try:
+        return _generate_via_server(changed_files, diff_summary)
+    except Exception:
+        pass
+
+    from .ai_generator import call_deepseek
+
     files_list = "\n".join(f"  - {f}" for f in changed_files[:30]) or "  (none detected)"
-
-    system_prompt = (
-        "You are an expert software engineer. "
-        "Write a concise, conventional-commits style git commit message. "
-        "Use the format: <type>(<scope>): <short summary> "
-        "Optionally add a blank line then a short body (max 3 bullets). "
-        "Output ONLY the commit message text, nothing else."
-    )
-    user_prompt = (
-        f"Changed files:\n{files_list}\n\n"
-        f"Diff summary:\n{diff_summary}\n\n"
-        "Write the commit message:"
-    )
-
     messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
+        {
+            "role": "system",
+            "content": (
+                "You are an expert software engineer. "
+                "Write a concise, conventional-commits style git commit message. "
+                "Use the format: <type>(<scope>): <short summary> "
+                "Optionally add a blank line then a short body (max 3 bullets). "
+                "Output ONLY the commit message text, nothing else."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Changed files:\n{files_list}\n\n"
+                f"Diff summary:\n{diff_summary}\n\n"
+                "Write the commit message:"
+            ),
+        },
     ]
-
     raw = call_deepseek(messages, api_key)
-    # Clean up any surrounding quotes or backticks the model might add
     return raw.strip().strip("`\"'")
 
 
