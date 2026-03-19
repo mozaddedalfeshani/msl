@@ -4,18 +4,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-**MSL** is a powerful CLI tool that generates platform-specific skill and rule files for AI coding assistants (Cursor, VS Code, Claude Code, etc.) with a single command. It now features **DeepSeek AI integration** to create perfectly tailored, project-aware instructions in seconds.
+**MSL** is a powerful CLI tool that generates platform-specific skill and rule files for AI coding assistants (Cursor, VS Code, Claude Code, etc.) with a single command. It features **MSL AI integration** to create perfectly tailored, project-aware instructions in seconds, plus comprehensive git utilities.
 
-----
+---
 
 Install globally in macos
 `pip3 install --user --break-system-packages --upgrade msl`
 
 ## ✨ Key Features
 
-- **🤖 AI-Powered Generation (`--ai`)**: Connects to DeepSeek to analyze your project (README, `package.json`, etc.) and write custom rules.
+- **🤖 AI-Powered Generation (`--ai`)**: Connects to MSL API to analyze your project (README, `package.json`, etc.) and write custom rules.
 - **⚡ Smart Push (`--gph`)**: One-command git workflow. Stages files, uses AI to write a perfect commit message, and pushes with built-in retry logic.
-- **🔍 Intelligent Scanning**: Automatically detects frameworks (Next.js, Flutter, Fastify, etc.) and project types.
+- **� Git Utilities**: Complete git management suite including branch creation, commit removal, and remote management.
+- **�🔍 Intelligent Scanning**: Automatically detects frameworks (Next.js, Flutter, Fastify, etc.) and project types.
 - **🛠️ Platform Support**: Generates the correct files for **Cursor** (`.cursor/rules.md`), **VS Code** (`.github/copilot-instructions.md`), **Claude Code** (`CLAUDE.md`), and **Codex** (`AGENTS.md`).
 - **📦 Zero-Config Setup**: Works instantly with Node.js, Python, Rust, Go, and Flutter projects.
 
@@ -53,7 +54,7 @@ msl
 
 ### 2. AI-Enhanced Generation
 
-Generate a tailor-made skill file using DeepSeek AI by reading your project's context:
+Generate a tailor-made skill file using MSL AI by reading your project's context:
 
 ```bash
 msl --ai --platform cursor --project-path .
@@ -67,18 +68,32 @@ Stage, commit (with AI-generated messages), and push in one go:
 msl --gph
 ```
 
+### 4. Git Utilities
+
+Complete git management suite:
+
+```bash
+# Create and switch to new branch
+msl --gbs
+
+# Reset last N commits (interactive mode selection)
+msl --gsr 3
+
+# Show remote URLs
+msl --gru
+
+# Set/update remote URL
+msl --grs https://github.com/user/repo.git
+```
+
 ---
 
-## 🧠 Using DeepSeek AI
+## 🧠 Using MSL AI
 
-To use the `--ai` flag, you need a DeepSeek API key. MSL looks for it in three places:
+The `--ai` flag uses the MSL API directly - no API keys required! The AI analyzes your project files and generates tailored instructions automatically.
 
-1. **Environment Variable**: `export DEEPSEEK_API=sk-your-key`
-2. **.env File**: Add `DEEPSEEK_API=sk-your-key` to your project root.
-3. **CLI Flag**: `msl --ai --ai-key sk-your-key ...`
-
-> [!IMPORTANT]
-> **Security First**: Your API key is **never** bundled or shared. It remains local to your environment and is only used to call the DeepSeek API from your machine.
+> [!NOTE]
+> **No Setup Required**: MSL AI works out of the box with no configuration needed. Just run `msl --ai` and get instant, project-aware results.
 
 ---
 
@@ -96,12 +111,16 @@ This cleans previous artifacts, builds both wheel and source distributions, and 
 
 ---
 
-## �🛠️ CLI Options
+## 🛠️ CLI Options
 
 | Flag         | Description                                                   |
 | :----------- | :------------------------------------------------------------ |
-| `--ai`       | Generate a project-tailored skill file using DeepSeek AI.     |
+| `--ai`       | Generate a project-tailored skill file using MSL AI.          |
 | `--gph`      | Smart Git Push: Add, AI-commit, and Push with retry.          |
+| `--gbs`      | Create and switch to a new branch.                            |
+| `--gsr N`    | Git reset last N commits (prompts for reset mode).            |
+| `--gru`      | Show configured git remote URLs.                              |
+| `--grs URL`  | Set or update git remote URL.                                 |
 | `--platform` | Target platform (`cursor`, `vscode`, `claude-code`, `codex`). |
 | `--stdout`   | Print the generated content instead of writing to a file.     |
 | `--perfect`  | Optimize `package.json` with industry-standard scripts.       |
@@ -138,6 +157,10 @@ pipx install msl
 - উইজার্ড চালাতে: `msl`
 - এআই দিয়ে জেনারেট করতে: `msl --ai --platform cursor`
 - অটোমেটিক গিট পুশ: `msl --gph`
+- নতুন ব্রাঞ্চ তৈরি: `msl --gbs`
+- কমিট রিসেট: `msl --gsr 3`
+- রিমোট URL দেখুন: `msl --gru`
+- রিমোট URL সেট করুন: `msl --grs https://github.com/user/repo.git`
   . project path নেবে, current directory অথবা custom path
 
 5. project type suggest করবে

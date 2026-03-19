@@ -308,8 +308,55 @@ def ask_main_action() -> str:
             choices=[
                 questionary.Choice(title="✨ Create AI Skill File", value="skill"),
                 questionary.Choice(title="🚀 Smart Git Push", value="git"),
+                questionary.Choice(title="🗑️  Remove Commits", value="reset"),
+                questionary.Choice(title="📡 Manage Remotes", value="remote"),
             ],
             style=_STYLE,
+        ).ask()
+    )
+
+
+def ask_remote_action() -> str:
+    return _ask(
+        questionary.select(
+            "What do you want to do with remotes?",
+            choices=[
+                questionary.Choice(title="👀 Show Remote URLs", value="show"),
+                questionary.Choice(title="🔗 Set/Update Remote URL", value="set"),
+            ],
+            style=_STYLE,
+        ).ask()
+    )
+
+
+def ask_remote_url() -> str:
+    return _ask(
+        questionary.text(
+            "Enter the remote URL:",
+            validate=lambda text: text.strip() != "" or "Remote URL cannot be empty"
+        ).ask()
+    )
+
+
+def ask_reset_action() -> str:
+    return _ask(
+        questionary.select(
+            "What type of reset do you want?",
+            choices=[
+                questionary.Choice(title="🔄 Mixed Reset (keep changes unstaged)", value="mixed"),
+                questionary.Choice(title="📦 Soft Reset (keep changes staged)", value="soft"),
+                questionary.Choice(title="💥 Hard Reset (discard all changes)", value="hard"),
+            ],
+            style=_STYLE,
+        ).ask()
+    )
+
+
+def ask_commit_count() -> int:
+    return _ask(
+        questionary.text(
+            "How many commits do you want to remove?",
+            validate=lambda text: text.isdigit() and int(text) > 0 or "Please enter a positive number"
         ).ask()
     )
 
@@ -326,6 +373,29 @@ def run_wizard() -> tuple[SkillGenContext, ProjectScan, bool] | None:
         from .git_tools import smart_push
         try:
             smart_push(Path.cwd())
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+        return None
+
+    if action == "reset":
+        from .git_tools import remove_last_commits
+        try:
+            reset_mode = ask_reset_action()
+            count = ask_commit_count()
+            remove_last_commits(Path.cwd(), int(count), reset_mode)
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+        return None
+
+    if action == "remote":
+        from .git_tools import show_remote_urls, set_remote_url
+        try:
+            remote_action = ask_remote_action()
+            if remote_action == "show":
+                show_remote_urls(Path.cwd())
+            elif remote_action == "set":
+                url = ask_remote_url()
+                set_remote_url(Path.cwd(), url)
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
         return None

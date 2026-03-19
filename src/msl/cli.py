@@ -37,6 +37,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--perfect", action="store_true")
     parser.add_argument("--gph", action="store_true")
     parser.add_argument("--gbs", action="store_true")
+    parser.add_argument("--gsr", type=int, help="Git reset last N commits (prompts for reset mode)")
+    parser.add_argument("--gru", action="store_true", help="Git remote: show remote URLs")
+    parser.add_argument("--grs", help="Git remote: save/set remote URL")
     parser.add_argument("--ai", action="store_true", help="Generate using MSL AI based on project context")
     parser.add_argument(
         "-v",
@@ -64,6 +67,9 @@ def _print_help() -> None:
         "  msl --perfect --project-path .\n"
         "  msl --gph\n"
         "  msl --gbs\n"
+        "  msl --gsr 32\n"
+        "  msl --gru\n"
+        "  msl --grs https://github.com/user/repo.git\n"
         "\n"
         "Options:\n"
         "  -h, --help           Show this help message\n"
@@ -78,6 +84,9 @@ def _print_help() -> None:
         "  --perfect            Apply recommended package.json scripts for web projects\n"
         "  --gph                Prompt for a git commit message, then add, commit, and push\n"
         "  --gbs                Prompt for a new branch name, then create and switch to it\n"
+        "  --gsr N              Git reset last N commits (prompts for reset mode)\n"
+        "  --gru                Git remote: show remote URLs\n"
+        "  --grs URL            Git remote: save/set remote URL\n"
         "  --ai                 Generate a perfect skill file using MSL AI\n"
     )
 
@@ -167,6 +176,26 @@ def main() -> None:
                 branch = create_and_switch_branch(project_path)
                 console.print(f"[green]Switched to new branch {branch}[/green]")
                 logger.info("Switched to branch %s", branch)
+                return
+
+            # Handle git reset command
+            if args.gsr is not None:
+                logger.info("Git reset last %d commits", args.gsr)
+                from .git_tools import remove_last_commits_with_prompt
+                remove_last_commits_with_prompt(project_path, args.gsr)
+                return
+
+            # Handle git remote commands
+            if args.gru:
+                logger.info("Showing git remote URLs")
+                from .git_tools import show_remote_urls
+                show_remote_urls(project_path)
+                return
+
+            if args.grs:
+                logger.info("Setting git remote URL: %s", args.grs)
+                from .git_tools import set_remote_url
+                set_remote_url(project_path, args.grs)
                 return
 
             missing = [

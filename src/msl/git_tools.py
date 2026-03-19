@@ -269,3 +269,241 @@ def stage_commit_and_push(
             raise RuntimeError(result.stderr.strip() or result.stdout.strip() or f"git {' '.join(args)} failed")
 
     return branch
+
+
+# ── Git reset functions ───────────────────────────────────────────────────
+
+
+def has_uncommitted_changes(cwd: Path) -> bool:
+    """Check if there are any uncommitted changes in the working directory."""
+    result = _run_git(cwd, "status", "--porcelain")
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "Could not check git status")
+    return bool(result.stdout.strip())
+
+
+def get_commit_count(cwd: Path) -> int:
+    """Get the total number of commits in the repository."""
+    result = _run_git(cwd, "rev-list", "--count", "HEAD")
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "Could not count commits")
+    return int(result.stdout.strip())
+
+
+def get_commit_info(cwd: Path, count: int) -> list[str]:
+    """Get information about the last N commits."""
+    result = _run_git(cwd, "log", "--oneline", f"-n{count}")
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "Could not get commit info")
+    return result.stdout.strip().splitlines()
+
+
+def reset_commits(cwd: Path, count: int, reset_mode: str) -> subprocess.CompletedProcess[str]:
+    """Execute git reset with the specified mode."""
+    reset_arg = f"--{reset_mode}"
+    return _run_git(cwd, "reset", reset_arg, f"HEAD~{count}")
+
+
+def remove_last_commits(cwd: Path, count: int, reset_mode: str = "mixed") -> None:
+    """Remove the last N commits using the specified reset mode.
+    
+    Args:
+        cwd: Git repository path
+        count: Number of commits to remove
+        reset_mode: 'soft', 'mixed', or 'hard'
+    
+    Raises:
+        RuntimeError: If the operation cannot be performed
+    """
+    ensure_git_repo(cwd)
+    
+    # Validate count
+    if count <= 0:
+        raise ValueError("Commit count must be greater than 0")
+    
+    # Check for uncommitted changes first
+    if has_uncommitted_changes(cwd):
+        raise RuntimeError(
+            "You have uncommitted changes. Please commit or stash them first."
+        )
+    
+    # Get total commits and validate
+    total_commits = get_commit_count(cwd)
+    if count >= total_commits:
+        raise RuntimeError(
+            f"Cannot remove {count} commits from a repository with only {total_commits} commits. "
+            "At least 1 commit must remain."
+        )
+    
+    # Get commit info for display
+    commits_to_remove = get_commit_info(cwd, count)
+    
+    # Show warning and details
+    console.print()
+    console.print(f"[bold red]⚠️  Warning: About to remove {count} commit{'s' if count > 1 else ''}[/bold red]")
+    console.print()
+    console.print("[bold]Commits to be removed:[/bold]")
+    for i, commit in enumerate(commits_to_remove, 1):
+        console.print(f"  [dim]{i}.[/dim] {commit}")
+    console.print()
+    
+    # Show what will happen based on reset mode
+    if reset_mode == "hard":
+        console.print("[bold red]⚠️  HARD RESET:[/bold red] All changes will be [bold]permanently discarded[/bold red]!")
+    elif reset_mode == "soft":
+        console.print("[bold blue]📦 SOFT RESET:[/bold blue] Changes will be kept as [bold]staged[/bold blue]")
+    else:  # mixed
+        console.print("[bold yellow]🔄 MIXED RESET:[/bold yellow] Changes will be kept as [bold]unstaged[/bold yellow]")
+    
+    console.print()
+    
+    # Ask for confirmation
+    import questionary
+    confirmed = questionary.confirm(
+        f"Are you sure you want to remove the last {count} commit{'s' if count > 1 else ''}?",
+        default=False,
+    ).ask()
+    
+    if not confirmed:
+        console.print("[yellow]Operation cancelled.[/yellow]")
+        return
+    
+    # Execute the reset
+    console.print(f"[dim]→[/dim] Resetting HEAD~{count} ({reset_mode} mode)...")
+    result = reset_commits(cwd, count, reset_mode)
+    
+    if result.returncode != 0:
+        error_msg = result.stderr.strip() or result.stdout.strip() or "Git reset failed"
+        raise RuntimeError(f"Failed to reset commits: {error_msg}")
+    
+    # Show success message
+    console.print(f"  [green]✓[/green] Removed {count} commit{'s' if count > 1 else ''}")
+    
+    if reset_mode == "hard":
+        console.print("  [dim]All changes have been discarded.[/dim]")
+    elif reset_mode == "soft":
+        console.print("  [dim]Changes are now staged. Use 'git status' to see them.[/dim]")
+    else:  # mixed
+        console.print("  [dim]Changes are now unstaged. Use 'git status' to see them.[/dim]")
+    
+    console.print()
+
+
+def remove_last_commits_with_prompt(cwd: Path, count: int) -> None:
+    """Remove the last N commits with interactive mode selection."""
+    import questionary
+    
+    # Ask for reset mode
+    reset_mode = questionary.select(
+        "What type of reset do you want?",
+        choices=[
+            questionary.Choice(title="🔄 Mixed Reset (keep changes unstaged)", value="mixed"),
+            questionary.Choice(title="📦 Soft Reset (keep changes staged)", value="soft"),
+            questionary.Choice(title="💥 Hard Reset (discard all changes)", value="hard"),
+        ],
+    ).ask()
+    
+    if reset_mode is None:
+        console.print("[yellow]Operation cancelled.[/yellow]")
+        return
+    
+    # Call the original function with the selected mode
+    remove_last_commits(cwd, count, reset_mode)
+
+
+# ── Git remote functions ───────────────────────────────────────────────────
+
+
+def show_remote_urls(cwd: Path) -> None:
+    """Show all configured remote URLs for the repository."""
+    ensure_git_repo(cwd)
+    
+    console.print()
+    console.print("[bold]📡 Git Remote URLs[/bold]")
+    console.print()
+    
+    # Get remote info
+    result = _run_git(cwd, "remote", "-v")
+    if result.returncode != 0:
+        console.print("[yellow]No remotes configured.[/yellow]")
+        return
+    
+    if not result.stdout.strip():
+        console.print("[yellow]No remotes configured.[/yellow]")
+        return
+    
+    # Parse and display remotes
+    lines = result.stdout.strip().splitlines()
+    for line in lines:
+        if line.strip():
+            parts = line.split()
+            if len(parts) >= 2:
+                name = parts[0]
+                url = parts[1]
+                fetch_push = "(fetch)" if len(parts) == 2 else f"({parts[2]}, {parts[3]})" if len(parts) >= 4 else "(fetch)"
+                
+                # Highlight origin remote
+                if name == "origin":
+                    console.print(f"  [green]{name}[/green]: {url} {fetch_push}")
+                else:
+                    console.print(f"  [cyan]{name}[/cyan]: {url} {fetch_push}")
+    
+    console.print()
+
+
+def set_remote_url(cwd: Path, url: str) -> None:
+    """Set or update a remote URL. Defaults to 'origin' if no remote exists."""
+    ensure_git_repo(cwd)
+    
+    if not url or not url.strip():
+        raise ValueError("Remote URL cannot be empty")
+    
+    url = url.strip()
+    
+    console.print()
+    console.print(f"[bold]🔗 Setting Git Remote URL[/bold]")
+    console.print()
+    console.print(f"URL: [cyan]{url}[/cyan]")
+    console.print()
+    
+    # Check if origin already exists
+    result = _run_git(cwd, "remote", "get-url", "origin")
+    origin_exists = result.returncode == 0
+    
+    if origin_exists:
+        # Update existing origin
+        current_url = result.stdout.strip()
+        console.print(f"Current origin: [dim]{current_url}[/dim]")
+        
+        import questionary
+        confirmed = questionary.confirm(
+            f"Update origin remote from '{current_url}' to '{url}'?",
+            default=True,
+        ).ask()
+        
+        if not confirmed:
+            console.print("[yellow]Operation cancelled.[/yellow]")
+            return
+        
+        console.print(f"[dim]→[/dim] Updating origin remote...")
+        result = _run_git(cwd, "remote", "set-url", "origin", url)
+        
+        if result.returncode == 0:
+            console.print(f"  [green]✓[/green] Updated origin to: {url}")
+        else:
+            error_msg = result.stderr.strip() or result.stdout.strip() or "Failed to update remote"
+            raise RuntimeError(f"Failed to update origin remote: {error_msg}")
+    else:
+        # Add new origin remote
+        console.print(f"[dim]→[/dim] Adding new origin remote...")
+        result = _run_git(cwd, "remote", "add", "origin", url)
+        
+        if result.returncode == 0:
+            console.print(f"  [green]✓[/green] Added origin: {url}")
+        else:
+            error_msg = result.stderr.strip() or result.stdout.strip() or "Failed to add remote"
+            raise RuntimeError(f"Failed to add origin remote: {error_msg}")
+    
+    console.print()
+    console.print("[dim]Use 'git push -u origin main' to push and set upstream.[/dim]")
+    console.print()
