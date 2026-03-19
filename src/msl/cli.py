@@ -32,6 +32,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--perfect", action="store_true")
     parser.add_argument("--gph", action="store_true")
     parser.add_argument("--gbs", action="store_true")
+    parser.add_argument("--ai", action="store_true", help="Generate using DeepSeek AI based on project context")
+    parser.add_argument("--ai-key", help="Explicit DeepSeek API key (overrides env/.env)")
     return parser
 
 
@@ -46,8 +48,8 @@ def _print_help() -> None:
         "  msl\n"
         "\n"
         "Non-interactive:\n"
-        "  msl --platform vscode --project-type python --preference intermediate --project-path .\n"
-        "  msl --platform cursor --project-type nextjs --preference industry_standard --stdout\n"
+        "  msl --ai --platform vscode --project-type python --preference intermediate --project-path .\n"
+        "  msl --ai --platform cursor --project-type nextjs --preference industry_standard --stdout\n"
         "  msl --perfect --project-path .\n"
         "  msl --gph\n"
         "  msl --gbs\n"
@@ -65,6 +67,8 @@ def _print_help() -> None:
         "  --perfect            Apply recommended package.json scripts for web projects\n"
         "  --gph                Prompt for a git commit message, then add, commit, and push\n"
         "  --gbs                Prompt for a new branch name, then create and switch to it\n"
+        "  --ai                 Generate a perfect skill file using DeepSeek AI\n"
+        "  --ai-key             Provide DeepSeek API key explicitly\n"
     )
 
 
@@ -81,6 +85,7 @@ def _is_non_interactive(args: argparse.Namespace) -> bool:
             args.perfect,
             args.gph,
             args.gbs,
+            args.ai,
             args.platform,
             args.project_path,
             args.project_type,
@@ -110,9 +115,10 @@ def main() -> None:
     from .models import Platform, PreferenceTier, ProjectType, SkillGenContext
     from .scanner import scan_project
     from .ui import console, run_wizard, show_cancelled, show_scan_results, show_success
-    from .writer import generate_skill_file, render_skill_content
+    from .writer import generate_skill_file, render_skill_content, write_content_to_file
     from .devtools import apply_perfect_scripts
     from .git_tools import create_and_switch_branch, stage_commit_and_push
+    from .ai_generator import generate_with_ai
 
     try:
         if _is_non_interactive(args):
@@ -175,15 +181,21 @@ def main() -> None:
             if scan.detected_type:
                 show_scan_results(scan)
 
+            if args.ai:
+                with console.status("[cyan]Generating with DeepSeek AI...[/cyan]", spinner="dots"):
+                    content = generate_with_ai(ctx, scan, explicit_api_key=args.ai_key)
+            else:
+                content = render_skill_content(ctx, scan)
+
             if args.stdout:
-                print(render_skill_content(ctx, scan), end="")
+                print(content, end="")
                 return
 
-            output_path = generate_skill_file(ctx, scan, force=args.force)
+            output_path = write_content_to_file(ctx.output_path, ctx.project_path, ctx.target_platform, content, force=args.force)
             show_success(output_path)
             return
 
-        result = run_wizard()
+        result = run_wizard(args.ai_key)
         if result is None:
             sys.exit(0)
 

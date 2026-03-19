@@ -274,10 +274,21 @@ def ask_confirmation(ctx: SkillGenContext, scan: ProjectScan) -> bool:
     )
 
 
+def ask_use_ai() -> bool:
+    console.print()
+    return _ask(
+        questionary.confirm(
+            "Would you like to enhance this with DeepSeek AI (reads project files)?",
+            default=False,
+            style=_STYLE,
+        ).ask()
+    )
+
+
 # ── Wizard orchestration ────────────────────────────────────────
 
 
-def run_wizard() -> tuple[SkillGenContext, ProjectScan] | None:
+def run_wizard(explicit_api_key: str | None = None) -> tuple[SkillGenContext, ProjectScan, bool] | None:
     show_banner()
 
     with console.status("[cyan]Checking your environment...[/cyan]", spinner="dots"):
@@ -310,4 +321,15 @@ def run_wizard() -> tuple[SkillGenContext, ProjectScan] | None:
         show_cancelled()
         return None
 
-    return ctx, scan
+    use_ai = ask_use_ai()
+    
+    if use_ai:
+        from .ai_generator import generate_with_ai
+        with console.status("[cyan]Analyzing project files & calling DeepSeek AI...[/cyan]", spinner="dots"):
+            content = generate_with_ai(ctx, scan, explicit_api_key)
+            from .writer import write_content_to_file
+            output_path = write_content_to_file(ctx.output_path, ctx.project_path, ctx.target_platform, content)
+            show_success(output_path)
+            return None # The tool has completed its writing successfully
+
+    return ctx, scan, False

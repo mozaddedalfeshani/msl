@@ -94,8 +94,8 @@ The wizard will:
 You can also use `msl` non-interactively in scripts and CI:
 
 ```bash
-msl --platform vscode --project-type python --preference intermediate --project-path .
-msl --platform cursor --project-type nextjs --preference industry_standard --stdout
+msl --ai --platform vscode --project-type python --preference intermediate --project-path .
+msl --ai --platform cursor --project-type nextjs --preference industry_standard --stdout
 msl --perfect --project-path .
 msl --gph
 msl --gbs
@@ -149,6 +149,7 @@ msl --gbs
 
 ## Smart Features
 
+- **AI Generation (`--ai`)**: Optionally read project files and generate a perfectly tailored skill file instantly via DeepSeek API.
 - **Auto-detection**: Scans `package.json`, `Cargo.toml`, `pubspec.yaml`, `pyproject.toml`, `go.mod` to identify your stack
 - **Context injection**: Appends detected project name, frameworks, and package manager to the generated file
 - **Correct conventions**: Uses each platform's real config file path — not a generic filename
@@ -169,10 +170,16 @@ msl --help       # Show help
 msl --list-options
 msl --platform vscode --project-type python --preference simple --project-path .
 msl --platform cursor --project-type nextjs --preference industry_standard --stdout
+msl --ai --platform cursor --project-path . --stdout  # Generate using DeepSeek API
 msl --perfect --project-path .
 msl --gph
 msl --gbs
 ```
+
+To use the `--ai` flag, you need a DeepSeek API key. You can provide it in three ways:
+1. Export it in your shell: `export DEEPSEEK_API=sk-your-key`
+2. Put it in a `.env` file in the project root: `DEEPSEEK_API=sk-your-key`
+3. Pass it explicitly: `msl --ai --ai-key sk-your-key ...`
 
 `msl --perfect` inspects your existing `package.json` and adds sensible scripts like `test`, `test:watch`, `format`, `format:check`, `postbuild`, `prepare`, and a composed `fulltest` command when the required tools are already present.
 

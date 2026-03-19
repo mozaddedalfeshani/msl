@@ -30,6 +30,7 @@ Thumbs.db
 htmlcov/
 
 # Build
+*.env
 *.tar.gz
 
 # PyPI publishing

@@ -43,14 +43,15 @@ def render_skill_content(ctx: SkillGenContext, scan: ProjectScan | None = None) 
     )
 
 
-def generate_skill_file(
-    ctx: SkillGenContext,
-    scan: ProjectScan | None = None,
+def write_content_to_file(
+    output_path: Path,
+    project_root: Path,
+    target_platform: object,
+    content: str,
     *,
     force: bool = False,
 ) -> Path:
-    output_path = ctx.output_path
-    output_dir = get_output_dir(ctx.target_platform, ctx.project_path)
+    output_dir = get_output_dir(target_platform, project_root)
 
     # Safe overwrite check
     if output_path.exists() and not force:
@@ -63,8 +64,15 @@ def generate_skill_file(
             raise FileExistsError(f"Aborted: {output_path} already exists")
 
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    rendered = render_skill_content(ctx, scan)
-
-    output_path.write_text(rendered, encoding="utf-8")
+    output_path.write_text(content, encoding="utf-8")
     return output_path
+
+
+def generate_skill_file(
+    ctx: SkillGenContext,
+    scan: ProjectScan | None = None,
+    *,
+    force: bool = False,
+) -> Path:
+    rendered = render_skill_content(ctx, scan)
+    return write_content_to_file(ctx.output_path, ctx.project_path, ctx.target_platform, rendered, force=force)

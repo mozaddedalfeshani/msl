@@ -75,3 +75,27 @@ def test_cli_gbs_mode(capsys, tmp_path: Path):
     output = capsys.readouterr().out
     assert "Switched to new branch feature/login" in output
     branch_flow.assert_called_once_with(tmp_path.resolve())
+
+
+def test_cli_ai_mode(capsys, tmp_path: Path):
+    with patch("msl.ai_generator.generate_with_ai", return_value="# AI Skill Content") as ai_gen, patch(
+        "sys.argv",
+        [
+            "msl",
+            "--ai",
+            "--platform",
+            "vscode",
+            "--project-type",
+            "python",
+            "--preference",
+            "simple",
+            "--project-path",
+            str(tmp_path),
+            "--stdout",
+        ],
+    ):
+        cli.main()
+        
+    output = capsys.readouterr().out
+    assert "# AI Skill Content" in output
+    ai_gen.assert_called_once()
