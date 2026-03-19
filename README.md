@@ -30,7 +30,8 @@ python3 -m pip install --user msl
 py -m pip install --user msl
 ```
 
-*Recommended: Use [pipx](https://pypa.github.io/pipx/) for a clean, isolated installation:*
+_Recommended: Use [pipx](https://pypa.github.io/pipx/) for a clean, isolated installation:_
+
 ```bash
 pipx install msl
 ```
@@ -40,19 +41,25 @@ pipx install msl
 ## 🕹️ Quick Start
 
 ### 1. Interactive Wizard
+
 Run the wizard to scan your project and generate rules step-by-step:
+
 ```bash
 msl
 ```
 
 ### 2. AI-Enhanced Generation
+
 Generate a tailor-made skill file using DeepSeek AI by reading your project's context:
+
 ```bash
 msl --ai --platform cursor --project-path .
 ```
 
 ### 3. Smart Git Push
+
 Stage, commit (with AI-generated messages), and push in one go:
+
 ```bash
 msl --gph
 ```
@@ -74,14 +81,14 @@ To use the `--ai` flag, you need a DeepSeek API key. MSL looks for it in three p
 
 ## 🛠️ CLI Options
 
-| Flag | Description |
-| :--- | :--- |
-| `--ai` | Generate a project-tailored skill file using DeepSeek AI. |
-| `--gph` | Smart Git Push: Add, AI-commit, and Push with retry. |
+| Flag         | Description                                                   |
+| :----------- | :------------------------------------------------------------ |
+| `--ai`       | Generate a project-tailored skill file using DeepSeek AI.     |
+| `--gph`      | Smart Git Push: Add, AI-commit, and Push with retry.          |
 | `--platform` | Target platform (`cursor`, `vscode`, `claude-code`, `codex`). |
-| `--stdout` | Print the generated content instead of writing to a file. |
-| `--perfect` | Optimize `package.json` with industry-standard scripts. |
-| `--force` | Overwrite existing files without confirmation. |
+| `--stdout`   | Print the generated content instead of writing to a file.     |
+| `--perfect`  | Optimize `package.json` with industry-standard scripts.       |
+| `--force`    | Overwrite existing files without confirmation.                |
 
 ---
 
@@ -104,15 +111,18 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 `msl` একটি CLI টুল যা আপনার প্রজেক্টের জন্য সঠিক AI Skill বা Rule ফাইল তৈরি করে দেয়। এখন এতে আছে DeepSeek AI পাওয়ার, যা আপনার প্রজেক্টের কোড বুঝে অটোমেটিক নিয়ম লিখে দেবে।
 
 **ইন্সটল:**
+
 ```bash
 pipx install msl
 ```
 
 **ব্যবহার:**
+
 - উইজার্ড চালাতে: `msl`
 - এআই দিয়ে জেনারেট করতে: `msl --ai --platform cursor`
 - অটোমেটিক গিট পুশ: `msl --gph`
-. project path নেবে, current directory অথবা custom path
+  . project path নেবে, current directory অথবা custom path
+
 5. project type suggest করবে
 6. preference level নিতে বলবে, যেমন Simple, Intermediate, Industry Standard
 7. শেষে সঠিক path-এ সঠিক file generate করবে
