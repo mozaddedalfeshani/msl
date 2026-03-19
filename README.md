@@ -6,6 +6,14 @@
 
 **MSL** is a powerful CLI tool that generates platform-specific skill and rule files for AI coding assistants (Cursor, VS Code, Claude Code, etc.) with a single command. It features **MSL AI integration** to create perfectly tailored, project-aware instructions in seconds, plus comprehensive git utilities.
 
+## 🎯 Why MSL?
+
+- **🚀 One-Command Setup**: Generate AI-optimized skill files instantly
+- **🧠 Smart Context Analysis**: Reads your project to create tailored instructions
+- **🔧 Complete Git Suite**: Branch management, commit operations, and remote handling
+- **🛡️ Safety First**: Interactive confirmations and change previews
+- **📦 Zero Configuration**: Works out of the box with no API keys needed
+
 ---
 
 Install globally in macos
@@ -15,8 +23,8 @@ Install globally in macos
 
 - **🤖 AI-Powered Generation (`--ai`)**: Connects to MSL API to analyze your project (README, `package.json`, etc.) and write custom rules.
 - **⚡ Smart Push (`--gph`)**: One-command git workflow. Stages files, uses AI to write a perfect commit message, and pushes with built-in retry logic.
-- **� Git Utilities**: Complete git management suite including branch creation, commit removal, and remote management.
-- **�🔍 Intelligent Scanning**: Automatically detects frameworks (Next.js, Flutter, Fastify, etc.) and project types.
+- **🔧 Git Utilities**: Complete git management suite including branch creation, commit removal, and remote management.
+- **🔍 Intelligent Scanning**: Automatically detects frameworks (Next.js, Flutter, Fastify, etc.) and project types.
 - **🛠️ Platform Support**: Generates the correct files for **Cursor** (`.cursor/rules.md`), **VS Code** (`.github/copilot-instructions.md`), **Claude Code** (`CLAUDE.md`), and **Codex** (`AGENTS.md`).
 - **📦 Zero-Config Setup**: Works instantly with Node.js, Python, Rust, Go, and Flutter projects.
 
@@ -70,7 +78,7 @@ msl --gph
 
 ### 4. Git Utilities
 
-Complete git management suite:
+Complete git management suite with safety features:
 
 ```bash
 # Create and switch to new branch
@@ -86,14 +94,20 @@ msl --gru
 msl --grs https://github.com/user/repo.git
 ```
 
+**Safety Features:**
+
+- Interactive confirmation for destructive operations
+- Uncommitted changes detection
+- Commit preview before removal
+- Multiple reset modes (soft/mixed/hard)
+
 ---
 
 ## 🧠 Using MSL AI
 
 The `--ai` flag uses the MSL API directly - no API keys required! The AI analyzes your project files and generates tailored instructions automatically.
 
-> [!NOTE]
-> **No Setup Required**: MSL AI works out of the box with no configuration needed. Just run `msl --ai` and get instant, project-aware results.
+> **Note**: MSL AI works out of the box with no configuration needed. Just run `msl --ai` and get instant, project-aware results.
 
 ---
 
@@ -111,7 +125,7 @@ This cleans previous artifacts, builds both wheel and source distributions, and 
 
 ---
 
-## 🛠️ CLI Options
+## 🛠️ Complete Command Reference
 
 | Flag         | Description                                                   |
 | :----------- | :------------------------------------------------------------ |
@@ -136,7 +150,32 @@ This cleans previous artifacts, builds both wheel and source distributions, and 
 
 ---
 
-## 📄 License
+## � Quick Install & Use
+
+```bash
+# Install
+pip install msl
+
+# Generate AI skill file for your project
+msl --ai --platform cursor
+
+# Smart git push with AI commit message
+msl --gph
+
+# Interactive wizard (recommended for first time)
+msl
+```
+
+**Perfect for:**
+
+- Developers using AI coding assistants
+- Teams wanting consistent coding standards
+- Projects needing quick AI assistant setup
+- Git workflow automation
+
+---
+
+## �📄 License
 
 Distributed under the **MIT License**. See `LICENSE` for more information.
 
