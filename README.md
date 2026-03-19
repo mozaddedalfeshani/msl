@@ -6,7 +6,7 @@
 
 **MSL** is a powerful CLI tool that generates platform-specific skill and rule files for AI coding assistants (Cursor, VS Code, Claude Code, etc.) with a single command. It now features **DeepSeek AI integration** to create perfectly tailored, project-aware instructions in seconds.
 
----
+----
 
 Install globally in macos
 `pip3 install --user --break-system-packages --upgrade msl`
