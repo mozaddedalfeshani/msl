@@ -278,7 +278,7 @@ def ask_use_ai() -> bool:
     console.print()
     return _ask(
         questionary.confirm(
-            "Would you like to enhance this with DeepSeek AI (reads project files)?",
+            "Would you like to enhance this with MSL AI (reads project files)?",
             default=False,
             style=_STYLE,
         ).ask()
