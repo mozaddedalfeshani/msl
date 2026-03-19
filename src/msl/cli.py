@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 from pathlib import Path
+
+from . import __version__, configure_logging
+
+logger = logging.getLogger(__name__)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -34,6 +39,13 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gbs", action="store_true")
     parser.add_argument("--ai", action="store_true", help="Generate using DeepSeek AI based on project context")
     parser.add_argument("--ai-key", help="Explicit DeepSeek API key (overrides env/.env)")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Increase logging verbosity (use -vv for debug)",
+    )
     return parser
 
 
@@ -100,16 +112,21 @@ def main() -> None:
     parser = _build_parser()
     args = parser.parse_args(sys.argv[1:])
 
-    if args.version:
-        from . import __version__
+    configure_logging(args.verbose)
+    logger.info("Starting MSL CLI v%s", __version__)
+    logger.debug("Parsed args: %s", args)
 
+    if args.version:
         print(f"msl {__version__}")
+        logger.info("Displayed version")
         return
     if args.help:
         _print_help()
+        logger.info("Displayed help")
         return
     if args.list_options:
         _print_supported_options()
+        logger.info("Listed supported options")
         return
 
     from .models import Platform, PreferenceTier, ProjectType, SkillGenContext
@@ -122,8 +139,10 @@ def main() -> None:
 
     try:
         if _is_non_interactive(args):
+            logger.info("Running in non-interactive mode")
             project_path = Path(args.project_path or ".").expanduser().resolve()
             if args.perfect:
+                logger.info("Applying perfect scripts at %s", project_path)
                 package_json_path, changed, skipped = apply_perfect_scripts(
                     project_path,
                     force=args.force,
@@ -141,12 +160,15 @@ def main() -> None:
                 return
 
             if args.gph:
+                logger.info("Executing Smart Push")
                 smart_push(project_path, explicit_api_key=args.ai_key)
                 return
 
             if args.gbs:
+                logger.info("Creating and switching to new branch")
                 branch = create_and_switch_branch(project_path)
                 console.print(f"[green]Switched to new branch {branch}[/green]")
+                logger.info("Switched to branch %s", branch)
                 return
 
             missing = [
@@ -159,11 +181,13 @@ def main() -> None:
                 if not value
             ]
             if missing:
+                logger.error("Missing required flags for non-interactive mode: %s", missing)
                 raise ValueError(
                     "Non-interactive mode requires: " + ", ".join(missing)
                 )
 
             if not project_path.is_dir():
+                logger.error("Invalid project path: %s", project_path)
                 raise ValueError(f"Project path does not exist or is not a directory: {project_path}")
 
             ctx = SkillGenContext(
@@ -173,38 +197,51 @@ def main() -> None:
                 preference_tier=PreferenceTier(args.preference),
             )
             scan = scan_project(project_path)
+            logger.info("Scanned project %s", project_path)
             if scan.detected_type:
                 show_scan_results(scan)
 
             if args.ai:
-                with console.status("[cyan]Generating with DeepSeek AI...[/cyan]", spinner="dots"):
+                logger.info("Generating with MSL AI for %s", ctx.target_platform)
+                status_msg = "[cyan]MSL AI is analyzing your project...[/cyan]"
+                with console.status(status_msg, spinner="bouncingBar"):
                     content = generate_with_ai(ctx, scan, explicit_api_key=args.ai_key)
             else:
+                logger.info("Rendering template-based skill for %s", ctx.target_platform)
                 content = render_skill_content(ctx, scan)
 
             if args.stdout:
+                logger.info("Writing output to STDOUT")
                 print(content, end="")
                 return
 
             output_path = write_content_to_file(ctx.output_path, ctx.project_path, ctx.target_platform, content, force=args.force)
+            logger.info("Wrote skill file to %s", output_path)
             show_success(output_path)
             return
 
+        logger.info("Launching interactive wizard")
         result = run_wizard(args.ai_key)
         if result is None:
+            logger.info("Wizard completed without generating context (likely Smart Push or early exit)")
             sys.exit(0)
 
         ctx, scan = result
+        logger.info("Generating skill from interactive context for %s", ctx.target_platform)
         output_path = generate_skill_file(ctx, scan)
+        logger.info("Skill file written to %s", output_path)
         show_success(output_path)
 
     except KeyboardInterrupt:
+        logger.warning("Operation cancelled by user")
         show_cancelled()
         sys.exit(0)
     except FileExistsError as exc:
+        logger.warning("File exists error: %s", exc)
         console.print(f"\n[yellow]{exc}[/yellow]")
         sys.exit(0)
     except Exception as exc:
+        logger.exception("Unexpected error")
         console.print(f"\n[red]Error: {exc}[/red]")
         sys.exit(1)
 

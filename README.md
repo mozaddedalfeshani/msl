@@ -8,6 +8,9 @@
 
 ---
 
+Install globally in macos
+`pip3 install --user --break-system-packages --upgrade msl`
+
 ## ✨ Key Features
 
 - **🤖 AI-Powered Generation (`--ai`)**: Connects to DeepSeek to analyze your project (README, `package.json`, etc.) and write custom rules.
