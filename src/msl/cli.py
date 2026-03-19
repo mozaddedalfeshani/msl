@@ -40,7 +40,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gsr", type=int, help="Git reset last N commits (prompts for reset mode)")
     parser.add_argument("--gru", action="store_true", help="Git remote: show remote URLs")
     parser.add_argument("--grs", help="Git remote: save/set remote URL")
-    parser.add_argument("--login", action="store_true", help="Login to MSL using your browser")
+    parser.add_argument("--login", type=str, metavar="TOKEN", help="Login to MSL using your 32-digit API Token")
     parser.add_argument("--ai", action="store_true", help="Generate using MSL AI based on project context")
     parser.add_argument(
         "-v",
@@ -149,8 +149,8 @@ def main() -> None:
 
     try:
         if args.login:
-            logger.info("Initiating login")
-            msl_login()
+            logger.info("Initiating token login")
+            msl_login(args.login)
             return
 
         if _is_non_interactive(args):
