@@ -54,15 +54,13 @@ def test_cli_perfect_mode(capsys, tmp_path: Path):
 
 
 def test_cli_gph_mode(capsys, tmp_path: Path):
-    with patch("msl.git_tools.stage_commit_and_push", return_value="main") as push_flow, patch(
+    with patch("msl.git_tools.smart_push") as push_flow, patch(
         "sys.argv",
         ["msl", "--gph", "--project-path", str(tmp_path)],
     ):
         cli.main()
 
-    output = capsys.readouterr().out
-    assert "Changes pushed on branch main" in output
-    push_flow.assert_called_once_with(tmp_path.resolve(), None, confirm=False)
+    push_flow.assert_called_once_with(tmp_path.resolve(), explicit_api_key=None)
 
 
 def test_cli_gbs_mode(capsys, tmp_path: Path):

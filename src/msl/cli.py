@@ -117,7 +117,7 @@ def main() -> None:
     from .ui import console, run_wizard, show_cancelled, show_scan_results, show_success
     from .writer import generate_skill_file, render_skill_content, write_content_to_file
     from .devtools import apply_perfect_scripts
-    from .git_tools import create_and_switch_branch, stage_commit_and_push
+    from .git_tools import create_and_switch_branch, stage_commit_and_push, smart_push
     from .ai_generator import generate_with_ai
 
     try:
@@ -141,12 +141,7 @@ def main() -> None:
                 return
 
             if args.gph:
-                branch = stage_commit_and_push(
-                    project_path,
-                    None,
-                    confirm=not args.gph,
-                )
-                console.print(f"[green]Changes pushed on branch {branch}[/green]")
+                smart_push(project_path, explicit_api_key=args.ai_key)
                 return
 
             if args.gbs:
