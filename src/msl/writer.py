@@ -76,3 +76,5 @@ def generate_skill_file(
 ) -> Path:
     rendered = render_skill_content(ctx, scan)
     return write_content_to_file(ctx.output_path, ctx.project_path, ctx.target_platform, rendered, force=force)
+
+#
