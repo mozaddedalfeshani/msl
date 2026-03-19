@@ -6,7 +6,7 @@ from rich.console import Console
 
 console = Console()
 
-MSL_AUTH_URL = os.environ.get("MSL_API_URL", "http://localhost:3000")
+MSL_AUTH_URL = "https://msl.imurad.me"
 CREDENTIALS_FILE = Path.home() / ".msl" / "credentials.json"
 
 def get_access_token() -> str | None:

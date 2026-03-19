@@ -100,7 +100,6 @@ def create_and_switch_branch(cwd: Path, branch_name: str | None = None) -> str:
 
 # ── AI commit message generation ──────────────────────────────────────────
 
-MSL_SERVER_URL = "https://apicommit.umartco.net"
 
 
 def _generate_via_server(changed_files: list[str], diff_summary: str) -> str:

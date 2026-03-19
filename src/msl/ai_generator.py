@@ -12,8 +12,7 @@ from .scanner import ProjectScan
 # Max bytes to read from any single file to prevent exploding prompts
 MAX_FILE_BYTES = 8192
 
-# The URL for the MSL API
-MSL_API_URL = "https://apicommit.umartco.net"
+
 
 
 def call_msl_api(messages: list[dict[str, str]]) -> str:
