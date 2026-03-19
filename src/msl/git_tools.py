@@ -118,41 +118,12 @@ def _generate_via_server(changed_files: list[str], diff_summary: str) -> str:
     return data["message"].strip().strip("`\"'")
 
 
-def generate_commit_message(cwd: Path, api_key: str) -> str:
-    """Ask MSL server (or DeepSeek directly as fallback) for a commit message."""
+def generate_commit_message(cwd: Path) -> str:
+    """Ask MSL API for a commit message."""
     changed_files = get_changed_files(cwd)
     diff_summary = get_diff_summary(cwd)
 
-    try:
-        return _generate_via_server(changed_files, diff_summary)
-    except Exception:
-        pass
-
-    from .ai_generator import call_deepseek
-
-    files_list = "\n".join(f"  - {f}" for f in changed_files[:30]) or "  (none detected)"
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are an expert software engineer. "
-                "Write a concise, conventional-commits style git commit message. "
-                "Use the format: <type>(<scope>): <short summary> "
-                "Optionally add a blank line then a short body (max 3 bullets). "
-                "Output ONLY the commit message text, nothing else."
-            ),
-        },
-        {
-            "role": "user",
-            "content": (
-                f"Changed files:\n{files_list}\n\n"
-                f"Diff summary:\n{diff_summary}\n\n"
-                "Write the commit message:"
-            ),
-        },
-    ]
-    raw = call_deepseek(messages, api_key)
-    return raw.strip().strip("`\"'")
+    return _generate_via_server(changed_files, diff_summary)
 
 
 # ── Smart push flow ────────────────────────────────────────────────────────
@@ -180,20 +151,17 @@ def smart_push(
     Full smart push flow:
       1. Ensure git repo + has changes
       2. git add .
-      3. Generate commit message via DeepSeek
+      3. Generate commit message via MSL API
       4. git commit
       5. git push origin <branch>
          → on failure: retry with --no-verify
          → on failure: error with hint
     """
-    from .ai_generator import resolve_api_key
-
     ensure_git_repo(cwd)
 
     if not has_changes(cwd):
         raise RuntimeError("No git changes to commit.")
 
-    api_key = resolve_api_key(cwd, explicit_api_key)
     branch = get_current_branch(cwd)
 
     console.print()
@@ -217,9 +185,9 @@ def smart_push(
 
     # ── Step 2: Generate commit message ───────────────────────────────────
     console.print()
-    console.print("[bold]Generating commit message[/bold] [dim](DeepSeek)[/dim]")
+    console.print("[bold]Generating commit message[/bold] [dim](MSL API)[/dim]")
     with console.status("  [cyan]thinking...[/cyan]", spinner="dots"):
-        commit_message = generate_commit_message(cwd, api_key)
+        commit_message = generate_commit_message(cwd)
 
     console.print(f"  [green]✓[/green]  [italic]{commit_message}[/italic]")
 

@@ -37,8 +37,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--perfect", action="store_true")
     parser.add_argument("--gph", action="store_true")
     parser.add_argument("--gbs", action="store_true")
-    parser.add_argument("--ai", action="store_true", help="Generate using DeepSeek AI based on project context")
-    parser.add_argument("--ai-key", help="Explicit DeepSeek API key (overrides env/.env)")
+    parser.add_argument("--ai", action="store_true", help="Generate using MSL AI based on project context")
     parser.add_argument(
         "-v",
         "--verbose",
@@ -79,8 +78,7 @@ def _print_help() -> None:
         "  --perfect            Apply recommended package.json scripts for web projects\n"
         "  --gph                Prompt for a git commit message, then add, commit, and push\n"
         "  --gbs                Prompt for a new branch name, then create and switch to it\n"
-        "  --ai                 Generate a perfect skill file using DeepSeek AI\n"
-        "  --ai-key             Provide DeepSeek API key explicitly\n"
+        "  --ai                 Generate a perfect skill file using MSL AI\n"
     )
 
 
@@ -161,7 +159,7 @@ def main() -> None:
 
             if args.gph:
                 logger.info("Executing Smart Push")
-                smart_push(project_path, explicit_api_key=args.ai_key)
+                smart_push(project_path)
                 return
 
             if args.gbs:
@@ -205,7 +203,7 @@ def main() -> None:
                 logger.info("Generating with MSL AI for %s", ctx.target_platform)
                 status_msg = "[cyan]MSL AI is analyzing your project...[/cyan]"
                 with console.status(status_msg, spinner="bouncingBar"):
-                    content = generate_with_ai(ctx, scan, explicit_api_key=args.ai_key)
+                    content = generate_with_ai(ctx, scan)
             else:
                 logger.info("Rendering template-based skill for %s", ctx.target_platform)
                 content = render_skill_content(ctx, scan)
@@ -221,7 +219,7 @@ def main() -> None:
             return
 
         logger.info("Launching interactive wizard")
-        result = run_wizard(args.ai_key)
+        result = run_wizard()
         if result is None:
             logger.info("Wizard completed without generating context (likely Smart Push or early exit)")
             sys.exit(0)

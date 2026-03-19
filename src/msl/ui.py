@@ -317,7 +317,7 @@ def ask_main_action() -> str:
 # ── Wizard orchestration ────────────────────────────────────────
 
 
-def run_wizard(explicit_api_key: str | None = None) -> tuple[SkillGenContext, ProjectScan, bool] | None:
+def run_wizard() -> tuple[SkillGenContext, ProjectScan, bool] | None:
     show_banner()
 
     action = ask_main_action()
@@ -325,7 +325,7 @@ def run_wizard(explicit_api_key: str | None = None) -> tuple[SkillGenContext, Pr
     if action == "git":
         from .git_tools import smart_push
         try:
-            smart_push(Path.cwd(), explicit_api_key=explicit_api_key)
+            smart_push(Path.cwd())
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
         return None
@@ -367,7 +367,7 @@ def run_wizard(explicit_api_key: str | None = None) -> tuple[SkillGenContext, Pr
         from .ai_generator import generate_with_ai
         status_msg = "[cyan]Analyzing project files with MSL AI magic...[/cyan]"
         with console.status(status_msg, spinner="bouncingBar"):
-            content = generate_with_ai(ctx, scan, explicit_api_key)
+            content = generate_with_ai(ctx, scan)
             from .writer import write_content_to_file
             output_path = write_content_to_file(ctx.output_path, ctx.project_path, ctx.target_platform, content)
             show_success(output_path)
