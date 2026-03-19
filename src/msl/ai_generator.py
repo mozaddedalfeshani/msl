@@ -18,11 +18,17 @@ MSL_API_URL = "https://apicommit.umartco.net"
 
 def call_msl_api(messages: list[dict[str, str]]) -> str:
     """Execute the HTTP POST to MSL API for skill generation."""
-    url = f"{MSL_API_URL.rstrip('/')}/v1/api/commit"
+    from .auth import get_access_token, MSL_AUTH_URL
+    token = get_access_token()
+    
+    url = f"{MSL_AUTH_URL.rstrip('/')}/api/commit"
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+        
     # Convert messages to a simple text format for the commit API
     text_content = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
     payload = {
@@ -32,6 +38,9 @@ def call_msl_api(messages: list[dict[str, str]]) -> str:
     
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=60)
+        if response.status_code == 401 or response.status_code == 403:
+            raise RuntimeError("Authentication failed. Please run 'msl --login' to authenticate.")
+            
         response.raise_for_status()
         data = response.json()
         

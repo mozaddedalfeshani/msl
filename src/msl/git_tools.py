@@ -104,15 +104,37 @@ MSL_SERVER_URL = "https://apicommit.umartco.net"
 
 
 def _generate_via_server(changed_files: list[str], diff_summary: str) -> str:
-    """Call the MSL server POST /v1/api/commit endpoint."""
-    url = f"{MSL_SERVER_URL.rstrip('/')}/v1/api/commit"
+    """Call the MSL server POST /api/commit endpoint."""
+    from .auth import get_access_token, MSL_AUTH_URL
+    
+    token = get_access_token()
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+        
+    url = f"{MSL_AUTH_URL.rstrip('/')}/api/commit"
+    
     resp = requests.post(
         url,
+        headers=headers,
         json={"files": changed_files, "diff": diff_summary},
         timeout=35,
     )
-    resp.raise_for_status()
-    data = resp.json()
+    if resp.status_code == 401 or resp.status_code == 403:
+        raise RuntimeError("Authentication failed. Please run 'msl --login' to authenticate.")
+    
+    try:
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        try:
+            err = resp.json().get("error")
+            if err:
+                raise RuntimeError(err)
+        except:
+            pass
+        raise RuntimeError(f"MSL API error: {e}")
+        
     if "error" in data:
         raise RuntimeError(data["error"])
     return data["message"].strip().strip("`\"'")

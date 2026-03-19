@@ -45,23 +45,38 @@ _PLATFORM_DETECT_KEY = {
 
 
 def show_banner() -> None:
-    banner = Table.grid(padding=(0, 2))
-    banner.add_column(style="bold magenta")
-    banner.add_column(justify="right", style="bold cyan")
-    banner.add_row("MSL — Muradian Skill Languages", f"v{__version__}")
-
-    subtext = Text()
-    subtext.append("Guided AI skill composer & smart git automation", style="dim")
-    badge = Text("cursor · vscode · claude · codex", style="dim")
-    banner.add_row(subtext, badge)
-
+    from rich.align import Align
+    
+    logo = """
+ ███▄ ▄███▓  ██████  ██▓    
+▓██▒▀█▀ ██▒▒██    ▒ ▓██▒    
+▓██    ▓██░░ ▓██▄   ▒██░    
+▒██    ▒██   ▒   ██▒▒██░    
+▒██▒   ░██▒▒██████▒▒░██████▒
+░ ▒░   ░  ░▒ ▒▓▒ ▒ ░░ ▒░▓  ░
+░  ░      ░░ ░▒  ░ ░░ ░ ▒  ░
+░      ░   ░  ░  ░    ░ ░   
+       ░         ░      ░  ░
+"""
+    lines = logo.strip().splitlines()
+    styled_logo = Text()
+    colors = ["#B829FF", "#9B72CB", "#7289DA", "#4285F4", "#0F9D58", "#0F9D58", "#0F9D58"]
+    
+    for i, line in enumerate(lines):
+        color = colors[min(i, len(colors)-1)]
+        styled_logo.append(line + "\n", style=f"bold {color}")
+        
+    banner_group = Table.grid(padding=(0, 2))
+    banner_group.add_row(Align.center(styled_logo))
+    banner_group.add_row(Align.center(Text(f" MSL CLI v{__version__} ", style="bold white on #B829FF")))
+    banner_group.add_row(Align.center(Text("Guided AI skill composer & smart git automation", style="dim italic")))
+    
+    console.print()
     console.print(
         Panel(
-            banner,
-            border_style="magenta",
-            padding=(1, 2),
-            title="Welcome",
-            title_align="left",
+            banner_group,
+            border_style="#B829FF",
+            padding=(1, 4),
         )
     )
     console.print()
@@ -291,6 +306,11 @@ def ask_confirmation(ctx: SkillGenContext, scan: ProjectScan) -> bool:
 
 
 def ask_use_ai() -> bool:
+    from .auth import get_access_token
+    if not get_access_token():
+        console.print("\n[yellow]MSL AI features require authentication. Run 'msl --login' to enable AI features.[/yellow]")
+        return False
+        
     console.print()
     return _ask(
         questionary.confirm(
@@ -370,6 +390,11 @@ def run_wizard() -> tuple[SkillGenContext, ProjectScan, bool] | None:
     action = ask_main_action()
 
     if action == "git":
+        from .auth import get_access_token
+        if not get_access_token():
+            console.print("\n[yellow]Smart Git Push uses MSL AI which requires authentication. Run 'msl --login' to authenticate first.[/yellow]\n")
+            return None
+            
         from .git_tools import smart_push
         try:
             smart_push(Path.cwd())

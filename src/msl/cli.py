@@ -40,6 +40,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gsr", type=int, help="Git reset last N commits (prompts for reset mode)")
     parser.add_argument("--gru", action="store_true", help="Git remote: show remote URLs")
     parser.add_argument("--grs", help="Git remote: save/set remote URL")
+    parser.add_argument("--login", action="store_true", help="Login to MSL using your browser")
     parser.add_argument("--ai", action="store_true", help="Generate using MSL AI based on project context")
     parser.add_argument(
         "-v",
@@ -105,6 +106,7 @@ def _is_non_interactive(args: argparse.Namespace) -> bool:
             args.gph,
             args.gbs,
             args.ai,
+            args.login,
             args.platform,
             args.project_path,
             args.project_type,
@@ -143,8 +145,14 @@ def main() -> None:
     from .devtools import apply_perfect_scripts
     from .git_tools import create_and_switch_branch, stage_commit_and_push, smart_push
     from .ai_generator import generate_with_ai
+    from .auth import msl_login
 
     try:
+        if args.login:
+            logger.info("Initiating login")
+            msl_login()
+            return
+
         if _is_non_interactive(args):
             logger.info("Running in non-interactive mode")
             project_path = Path(args.project_path or ".").expanduser().resolve()
