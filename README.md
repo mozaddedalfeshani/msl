@@ -79,7 +79,21 @@ To use the `--ai` flag, you need a DeepSeek API key. MSL looks for it in three p
 
 ---
 
-## 🛠️ CLI Options
+## � Publishing to PyPI
+
+For maintainers releasing a new version, ensure your `.pypirc` or token file is configured, then run:
+
+```bash
+rm -rf dist/* && \
+python3 -m build && \
+twine upload --verbose --username __token__ --password "$(cat .pypi-token)" dist/* --non-interactive
+```
+
+This cleans previous artifacts, builds both wheel and source distributions, and uploads them with a PyPI token stored in `.pypi-token`.
+
+---
+
+## �🛠️ CLI Options
 
 | Flag         | Description                                                   |
 | :----------- | :------------------------------------------------------------ |

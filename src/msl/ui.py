@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from . import __version__
 from .detection import detect_all
 from .models import (
     DetectedTool,
@@ -44,10 +45,25 @@ _PLATFORM_DETECT_KEY = {
 
 
 def show_banner() -> None:
-    banner = Text()
-    banner.append("MSL", style="bold magenta")
-    banner.append(" — Muradian Skill Languages", style="dim")
-    console.print(Panel(banner, border_style="magenta", padding=(1, 2)))
+    banner = Table.grid(padding=(0, 2))
+    banner.add_column(style="bold magenta")
+    banner.add_column(justify="right", style="bold cyan")
+    banner.add_row("MSL — Muradian Skill Languages", f"v{__version__}")
+
+    subtext = Text()
+    subtext.append("Guided AI skill composer & smart git automation", style="dim")
+    badge = Text("cursor · vscode · claude · codex", style="dim")
+    banner.add_row(subtext, badge)
+
+    console.print(
+        Panel(
+            banner,
+            border_style="magenta",
+            padding=(1, 2),
+            title="Welcome",
+            title_align="left",
+        )
+    )
     console.print()
 
 
@@ -349,7 +365,8 @@ def run_wizard(explicit_api_key: str | None = None) -> tuple[SkillGenContext, Pr
     
     if use_ai:
         from .ai_generator import generate_with_ai
-        with console.status("[cyan]Analyzing project files & calling DeepSeek AI...[/cyan]", spinner="dots"):
+        status_msg = "[cyan]Analyzing project files with MSL AI magic...[/cyan]"
+        with console.status(status_msg, spinner="bouncingBar"):
             content = generate_with_ai(ctx, scan, explicit_api_key)
             from .writer import write_content_to_file
             output_path = write_content_to_file(ctx.output_path, ctx.project_path, ctx.target_platform, content)
