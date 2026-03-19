@@ -226,7 +226,7 @@ def ask_project_type(scan: ProjectScan) -> ProjectType:
         label = pt.display_name
         if scan.detected_type == pt and scan.confidence >= 0.7:
             label += "  [green](auto-detected)[/green]"
-            default = pt.display_name + "  [green](auto-detected)[/green]"
+            default = pt
         choices.append(questionary.Choice(title=label, value=pt))
 
     return _ask(
@@ -285,12 +285,36 @@ def ask_use_ai() -> bool:
     )
 
 
+def ask_main_action() -> str:
+    return _ask(
+        questionary.select(
+            "What do you want to do?",
+            choices=[
+                questionary.Choice(title="✨ Create AI Skill File", value="skill"),
+                questionary.Choice(title="🚀 Smart Git Push", value="git"),
+            ],
+            style=_STYLE,
+        ).ask()
+    )
+
+
 # ── Wizard orchestration ────────────────────────────────────────
 
 
 def run_wizard(explicit_api_key: str | None = None) -> tuple[SkillGenContext, ProjectScan, bool] | None:
     show_banner()
 
+    action = ask_main_action()
+
+    if action == "git":
+        from .git_tools import smart_push
+        try:
+            smart_push(Path.cwd(), explicit_api_key=explicit_api_key)
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+        return None
+
+    # Proceed with Skill Generation flow
     with console.status("[cyan]Checking your environment...[/cyan]", spinner="dots"):
         tools = detect_all()
 
