@@ -1,6 +1,6 @@
 """MSL — Muradian Skill Languages CLI."""
 
-__version__ = "0.2.4"
+__version__ = "0.3.0"
 
 LOG_FORMAT = "[%(levelname)s] %(message)s"
 
