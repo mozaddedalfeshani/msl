@@ -10,6 +10,8 @@ class Platform(Enum):
     VSCODE = "vscode"
     CLAUDE_CODE = "claude-code"
     CODEX = "codex"
+    WINDSURF = "windsurf"
+    ANTIGRAVITY = "antigravity"
 
     @property
     def display_name(self) -> str:
@@ -18,6 +20,8 @@ class Platform(Enum):
             Platform.VSCODE: "VS Code",
             Platform.CLAUDE_CODE: "Claude Code",
             Platform.CODEX: "Codex",
+            Platform.WINDSURF: "Windsurf",
+            Platform.ANTIGRAVITY: "Antigravity",
         }[self]
 
 
@@ -29,6 +33,7 @@ class ProjectType(Enum):
     NODEJS_SERVER = "nodejs-server"
     PYTHON = "python"
     GO_SERVER = "go-server"
+    GENERAL = "general"
 
     @property
     def display_name(self) -> str:
@@ -40,6 +45,7 @@ class ProjectType(Enum):
             ProjectType.NODEJS_SERVER: "Node.js (Server)",
             ProjectType.PYTHON: "Python",
             ProjectType.GO_SERVER: "Go (Server)",
+            ProjectType.GENERAL: "General / Custom",
         }[self]
 
 

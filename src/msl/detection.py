@@ -104,6 +104,33 @@ def detect_codex() -> DetectedTool:
     return DetectedTool(name="Codex", installed=False)
 
 
+def detect_windsurf() -> DetectedTool:
+    windsurf_path = shutil.which("windsurf")
+    if windsurf_path:
+        version = _run_version_cmd("windsurf")
+        return DetectedTool(
+            name="Windsurf", installed=True, version=version, path=windsurf_path
+        )
+    if platform_mod.system() == "Darwin" and _check_macos_app("Windsurf"):
+        return DetectedTool(
+            name="Windsurf", installed=True, path="/Applications/Windsurf.app"
+        )
+    return DetectedTool(name="Windsurf", installed=False)
+
+
+def detect_antigravity() -> DetectedTool:
+    # This is a specialized detection for the Antigravity IDE
+    ag_path = shutil.which("antigravity")
+    if ag_path:
+        version = _run_version_cmd("antigravity")
+        return DetectedTool(
+            name="Antigravity", installed=True, version=version, path=ag_path
+        )
+    if os.environ.get("ANTIGRAVITY_IDE"):
+        return DetectedTool(name="Antigravity", installed=True)
+    return DetectedTool(name="Antigravity", installed=False)
+
+
 def get_project_name(project_root: Path) -> str:
     """Return the name of the project based on the directory name."""
     return project_root.resolve().name
@@ -152,6 +179,10 @@ def detect_ide() -> str:
         return "JetBrains"
     if "cursor" in term_program.lower():
         return "Cursor"
+    if "windsurf" in term_program.lower():
+        return "Windsurf"
+    if "antigravity" in term_program.lower() or os.environ.get("ANTIGRAVITY_IDE"):
+        return "Antigravity"
     if "apple_terminal" in term_program.lower():
         return "Apple Terminal"
     if "iterm" in term_program.lower():
@@ -174,6 +205,8 @@ def detect_all(project_root: Path | str | None = None) -> dict[str, any]:
         "vscode": detect_vscode(),
         "claude-code": detect_claude_code(),
         "codex": detect_codex(),
+        "windsurf": detect_windsurf(),
+        "antigravity": detect_antigravity(),
         "ide": detect_ide(),
     }
     

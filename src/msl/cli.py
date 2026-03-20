@@ -21,11 +21,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("-h", "--help", action="store_true")
     parser.add_argument("-V", "--version", action="store_true")
-    parser.add_argument("--platform", choices=["cursor", "vscode", "claude-code", "codex"])
+    parser.add_argument("--platform", choices=["cursor", "vscode", "claude-code", "codex", "windsurf", "antigravity"])
     parser.add_argument("--project-path")
     parser.add_argument(
         "--project-type",
-        choices=["flutter", "nextjs", "react-vite", "rust-server", "nodejs-server", "python", "go-server"],
+        choices=["flutter", "nextjs", "react-vite", "rust-server", "nodejs-server", "python", "go-server", "general"],
     )
     parser.add_argument(
         "--preference",
@@ -94,8 +94,8 @@ def _print_help() -> None:
 
 
 def _print_supported_options() -> None:
-    print("Platforms: cursor, vscode, claude-code, codex")
-    print("Project types: flutter, nextjs, react-vite, rust-server, nodejs-server, python, go-server")
+    print("Platforms: cursor, vscode, claude-code, codex, windsurf, antigravity")
+    print("Project types: flutter, nextjs, react-vite, rust-server, nodejs-server, python, go-server, general")
     print("Preferences: simple, intermediate, industry_standard")
 
 

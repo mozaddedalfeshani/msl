@@ -11,6 +11,8 @@ PLATFORM_PATHS: dict[str, tuple[str | None, str]] = {
     Platform.VSCODE.value: (".github", "copilot-instructions.md"),  # .github/copilot-instructions.md
     Platform.CLAUDE_CODE.value: (None, "CLAUDE.md"),         # CLAUDE.md at project root
     Platform.CODEX.value: (None, "AGENTS.md"),               # AGENTS.md at project root
+    Platform.WINDSURF.value: (None, ".windsurfrules"),       # .windsurfrules at project root
+    Platform.ANTIGRAVITY.value: (".antigravity", "rules.md"),# .antigravity/rules.md
 }
 
 

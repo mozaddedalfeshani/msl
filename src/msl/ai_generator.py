@@ -108,47 +108,57 @@ def collect_project_context(project_root: Path) -> str:
 
 
 def build_prompt(ctx: SkillGenContext, scan: ProjectScan, project_files_text: str) -> list[dict[str, str]]:
-    """Build the ChatML prompt for DeepSeek."""
+    """Build the ChatML prompt for MSL AI."""
     
     system_prompt = (
-        "You are an expert software developer and architect. "
-        "Your task is to write a highly detailed, industry-standard set of coding rules and instructions "
-        "for an AI coding assistant. The output MUST be formatted as a single Markdown file."
+        "You are an Elite Software Architect and AI Infrastructure Engineer. "
+        "Your mission is to generate a world-class 'Skill File' (rules/instructions) for an AI coding assistant. "
+        "This file will be used to guide the AI in a specific project, ensuring every line of code "
+        "meets the highest industry standards for reliability, performance, and maintainability.\n\n"
+        "CORE PHILOSOPHY:\n"
+        "- **Pragmatic Excellence**: Solutions should be elegant but never over-engineered.\n"
+        "- **Security First**: Every recommendation must consider vulnerability mitigation.\n"
+        "- **Agentic Optimization**: Tailor rules so that agentic AI (like Windsurf, Cursor, or Antigravity) "
+        "can use its tools and MCP servers most effectively.\n"
     )
     
     # Start building the user context message
-    user_prompt = []
+    user_prompt_list = []
     
-    user_prompt.append(
-        f"Generate a customized AI skill file ({ctx.target_platform.display_name}) for my project."
+    user_prompt_list.append(
+        f"Generate a premium AI skill file for the **{ctx.target_platform.display_name}** platform."
     )
-    user_prompt.append(f"Project Type: {ctx.project_type.display_name}")
-    user_prompt.append(f"Preference Level: {ctx.preference_tier.display_name}")
+    user_prompt_list.append(f"- **Project context**: {ctx.project_type.display_name}")
+    user_prompt_list.append(f"- **Engineering Tier**: {ctx.preference_tier.display_name}")
     
     if scan.frameworks:
-        user_prompt.append(f"Detected Stack: {', '.join(scan.frameworks)}")
+        user_prompt_list.append(f"- **Tech Stack**: {', '.join(scan.frameworks)}")
     
     if scan.languages:
-        user_prompt.append(f"Languages: {', '.join(scan.languages)}")
+        user_prompt_list.append(f"- **Primary Languages**: {', '.join(scan.languages)}")
         
-    user_prompt.append("\nHere is the raw context from the project files:\n")
+    user_prompt_list.append("\n### SOURCE CONTEXT\n")
     if project_files_text.strip():
-        user_prompt.append(project_files_text)
+        user_prompt_list.append(project_files_text)
     else:
-        user_prompt.append("(No relevant project definition files found.)\n")
+        user_prompt_list.append("(No relevant project definition files found. Use general best practices for the indicated project type.)\n")
         
-    user_prompt.append(
-        "\nINSTRUCTIONS:\n"
-        "1. Write a comprehensive, industry-standard skill file in Markdown format.\n"
-        "2. Address code style, architecture, data fetching, state management, testing, and security.\n"
-        "3. Tailor the advice *specifically* to the frameworks, libraries, and languages detected in the files above.\n"
-        "4. DO NOT output any conversation, explanations, or greeting. Output ONLY the raw Markdown content.\n"
-        "5. DO NOT wrap the output in ```markdown blocks if it's the entire response."
+    user_prompt_list.append(
+        "\n### GENERATION REQUIREMENTS:\n"
+        "1. **Modern Architecture**: Enforce Clean Architecture, DDD, or appropriate modern patterns. "
+        "If it's Next.js, focus on the App Router and Server Components. If it's a backend, focus on type safety and service layers.\n"
+        "2. **Agentic Workflows**: If the platform is Windsurf, Antigravity, or Cursor, include instructions for "
+        "effective tool usage, file search strategies, and multi-step reasoning.\n"
+        "3. **Visual Excellence**: For frontend projects, include rules for premium UI/UX (Tailwind best practices, "
+        "accessibility, micro-animations, and responsive design).\n"
+        "4. **Formatting**: Categorize the output into clear sections: `Code Style`, `Architecture`, `Data Handling`, `Security`, and `Testing`.\n"
+        "5. **Constraints**: NO prose, NO greetings, NO chat. Output ONLY the raw Markdown content. "
+        "Do not wrap in triple backticks if the whole response is markdown."
     )
     
     return [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": "\n".join(user_prompt)}
+        {"role": "user", "content": "\n".join(user_prompt_list)}
     ]
 
 
