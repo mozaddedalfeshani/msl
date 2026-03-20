@@ -34,3 +34,13 @@ def msl_login(token: str) -> None:
             
     except Exception as e:
         console.print(f"[red]Authentication failed: {e}[/red]")
+
+def msl_logout() -> None:
+    try:
+        if CREDENTIALS_FILE.exists():
+            CREDENTIALS_FILE.unlink()
+            console.print("[bold green]✓ Successfully logged out and cleared credentials.[/bold green]")
+        else:
+            console.print("[yellow]You are not currently logged in.[/yellow]")
+    except Exception as e:
+        console.print(f"[red]Logout failed: {e}[/red]")

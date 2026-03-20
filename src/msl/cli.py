@@ -41,6 +41,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gru", action="store_true", help="Git remote: show remote URLs")
     parser.add_argument("--grs", help="Git remote: save/set remote URL")
     parser.add_argument("--login", type=str, metavar="TOKEN", help="Login to MSL using your 32-digit API Token")
+    parser.add_argument("--logout", action="store_true", help="Logout from MSL and clear stored credentials")
     parser.add_argument("--ai", action="store_true", help="Generate using MSL AI based on project context")
     parser.add_argument(
         "-v",
@@ -107,6 +108,7 @@ def _is_non_interactive(args: argparse.Namespace) -> bool:
             args.gbs,
             args.ai,
             args.login,
+            args.logout,
             args.platform,
             args.project_path,
             args.project_type,
@@ -151,6 +153,12 @@ def main() -> None:
         if args.login:
             logger.info("Initiating token login")
             msl_login(args.login)
+            return
+
+        if args.logout:
+            logger.info("Initiating logout")
+            from .auth import msl_logout
+            msl_logout()
             return
 
         if _is_non_interactive(args):
