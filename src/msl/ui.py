@@ -331,16 +331,24 @@ def ask_use_ai() -> bool:
     )
 
 
-def ask_main_action() -> str:
+def ask_main_action(is_logged_in: bool = False) -> str:
+    choices = [
+        questionary.Choice(title="✨ Create AI Skill File (--ai)", value="skill"),
+        questionary.Choice(title="🚀 Smart Git Push (--gp)", value="git"),
+        questionary.Choice(title="🗑️  Remove Commits (--gsr)", value="reset"),
+        questionary.Choice(title="📡 Manage Remotes (--gru/--grs)", value="remote"),
+        questionary.Choice(title="🛠️  Perfect Project (--perfect)", value="perfect"),
+    ]
+    
+    if is_logged_in:
+        choices.append(questionary.Choice(title="門 Logout from MSL (--logout)", value="logout"))
+    else:
+        choices.append(questionary.Choice(title="🔐 Login to MSL (--login)", value="login"))
+        
     return _ask(
         questionary.select(
             "What do you want to do?",
-            choices=[
-                questionary.Choice(title="✨ Create AI Skill File", value="skill"),
-                questionary.Choice(title="🚀 Smart Git Push", value="git"),
-                questionary.Choice(title="🗑️  Remove Commits", value="reset"),
-                questionary.Choice(title="📡 Manage Remotes", value="remote"),
-            ],
+            choices=choices,
             style=_STYLE,
         ).ask()
     )
@@ -399,7 +407,28 @@ def run_wizard() -> tuple[SkillGenContext, ProjectScan, bool] | None:
     is_logged_in = bool(get_access_token())
     show_banner(is_logged_in)
 
-    action = ask_main_action()
+    action = ask_main_action(is_logged_in)
+
+    if action == "login":
+        from .auth import msl_login
+        token = _ask(questionary.text("Enter your MSL API Token:", style=_STYLE).ask())
+        msl_login(str(token))
+        return None
+
+    if action == "logout":
+        from .auth import msl_logout
+        msl_logout()
+        return None
+
+    if action == "perfect":
+        from .devtools import apply_perfect_scripts
+        try:
+            path = ask_project_path()
+            apply_perfect_scripts(path)
+            console.print(f"[green]✓ Perfect scripts applied to project at {path}[/green]")
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
+        return None
 
     if action == "git":
         from .auth import get_access_token

@@ -35,8 +35,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--list-options", action="store_true")
     parser.add_argument("--perfect", action="store_true")
-    parser.add_argument("--gph", action="store_true")
-    parser.add_argument("--gbs", action="store_true")
+    parser.add_argument("--gp", action="store_true", help="Smart Git Push (add, commit, push)")
+    parser.add_argument("--gbs", action="store_true", help="Create and switch to a new branch")
     parser.add_argument("--gsr", type=int, help="Git reset last N commits (prompts for reset mode)")
     parser.add_argument("--gru", action="store_true", help="Git remote: show remote URLs")
     parser.add_argument("--grs", help="Git remote: save/set remote URL")
@@ -67,7 +67,7 @@ def _print_help() -> None:
         "  msl --ai --platform vscode --project-type python --preference intermediate --project-path .\n"
         "  msl --ai --platform cursor --project-type nextjs --preference industry_standard --stdout\n"
         "  msl --perfect --project-path .\n"
-        "  msl --gph\n"
+        "  msl --gp\n"
         "  msl --gbs\n"
         "  msl --gsr 32\n"
         "  msl --gru\n"
@@ -84,7 +84,7 @@ def _print_help() -> None:
         "  --force              Overwrite existing output without prompting\n"
         "  --list-options       Print supported platform, project type, and preference values\n"
         "  --perfect            Apply recommended package.json scripts for web projects\n"
-        "  --gph                Prompt for a git commit message, then add, commit, and push\n"
+        "  --gp                 Smart Git Push (add, commit, push)\n"
         "  --gbs                Prompt for a new branch name, then create and switch to it\n"
         "  --gsr N              Git reset last N commits (prompts for reset mode)\n"
         "  --gru                Git remote: show remote URLs\n"
@@ -104,8 +104,11 @@ def _is_non_interactive(args: argparse.Namespace) -> bool:
         value is not None and value is not False
         for value in (
             args.perfect,
-            args.gph,
+            args.gp,
             args.gbs,
+            args.gsr,
+            args.gru,
+            args.grs,
             args.ai,
             args.login,
             args.logout,
@@ -182,7 +185,7 @@ def main() -> None:
                         console.print(f"  [yellow]{name}[/yellow]")
                 return
 
-            if args.gph:
+            if args.gp:
                 logger.info("Executing Smart Push")
                 smart_push(project_path)
                 return
