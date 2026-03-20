@@ -44,7 +44,7 @@ _PLATFORM_DETECT_KEY = {
 # ── Display helpers ──────────────────────────────────────────────
 
 
-def show_banner() -> None:
+def show_banner(is_logged_in: bool = False) -> None:
     from rich.align import Align
     
     logo = """
@@ -60,7 +60,10 @@ def show_banner() -> None:
 """
     lines = logo.strip().splitlines()
     styled_logo = Text()
-    colors = ["#B829FF", "#9B72CB", "#7289DA", "#4285F4", "#0F9D58", "#0F9D58", "#0F9D58"]
+    
+    # Use green theme for logged in, purple for guest
+    primary_color = "#0F9D58" if is_logged_in else "#B829FF"
+    colors = ["#0F9D58", "#34A853", "#4285F4", "#4285F4"] if is_logged_in else ["#B829FF", "#9B72CB", "#7289DA", "#4285F4"]
     
     for i, line in enumerate(lines):
         color = colors[min(i, len(colors)-1)]
@@ -68,14 +71,21 @@ def show_banner() -> None:
         
     banner_group = Table.grid(padding=(0, 2))
     banner_group.add_row(Align.center(styled_logo))
-    banner_group.add_row(Align.center(Text(f" MSL CLI v{__version__} ", style="bold white on #B829FF")))
+    
+    version_text = Text(f" MSL CLI v{__version__} ", style=f"bold white on {primary_color}")
+    if is_logged_in:
+        version_text.append(" AUTHENTICATED ", style="bold black on #FBBC05")
+        
+    banner_group.add_row(Align.center(version_text))
     banner_group.add_row(Align.center(Text("Guided AI skill composer & smart git automation", style="dim italic")))
+    banner_group.add_row(Align.center(Text(""))) # Spacer
+    banner_group.add_row(Align.center(Text(" [Esc] Back  •  [Ctrl+C] Quit ", style="dim select-none")))
     
     console.print()
     console.print(
         Panel(
             banner_group,
-            border_style="#B829FF",
+            border_style=primary_color,
             padding=(1, 4),
         )
     )
@@ -385,7 +395,9 @@ def ask_commit_count() -> int:
 
 
 def run_wizard() -> tuple[SkillGenContext, ProjectScan, bool] | None:
-    show_banner()
+    from .auth import get_access_token
+    is_logged_in = bool(get_access_token())
+    show_banner(is_logged_in)
 
     action = ask_main_action()
 
