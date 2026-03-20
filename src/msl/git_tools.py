@@ -98,13 +98,10 @@ def create_and_switch_branch(cwd: Path, branch_name: str | None = None) -> str:
     return branch_name
 
 
-# ── AI commit message generation ──────────────────────────────────────────
-
-
-
-def _generate_via_server(changed_files: list[str], diff_summary: str) -> str:
+def _generate_via_server(cwd: Path, changed_files: list[str], diff_summary: str) -> str:
     """Call the MSL server POST /api/commit endpoint."""
     from .auth import get_access_token, MSL_AUTH_URL
+    from .detection import detect_all
     
     token = get_access_token()
     headers = {"Content-Type": "application/json"}
@@ -113,10 +110,26 @@ def _generate_via_server(changed_files: list[str], diff_summary: str) -> str:
         
     url = f"{MSL_AUTH_URL.rstrip('/')}/api/commit"
     
+    # detect_all now handles git root resolution internally
+    metadata = detect_all(cwd)
+    
     resp = requests.post(
         url,
         headers=headers,
-        json={"files": changed_files, "diff": diff_summary},
+        json={
+            "files": changed_files, 
+            "diff": diff_summary,
+            "metadata": {
+                "ide": metadata.get("ide", "Unknown"),
+                "project_name": metadata.get("project_name", "Unknown"),
+                "framework": metadata.get("framework", "Unknown"),
+                "cli": "msl",
+                "other_tools": {
+                    "cursor": metadata.get("cursor").installed if metadata.get("cursor") else False,
+                    "claude_code": metadata.get("claude-code").installed if metadata.get("claude-code") else False,
+                }
+            }
+        },
         timeout=35,
     )
     if resp.status_code == 401 or resp.status_code == 403:
@@ -144,7 +157,7 @@ def generate_commit_message(cwd: Path) -> str:
     changed_files = get_changed_files(cwd)
     diff_summary = get_diff_summary(cwd)
 
-    return _generate_via_server(changed_files, diff_summary)
+    return _generate_via_server(cwd, changed_files, diff_summary)
 
 
 # ── Smart push flow ────────────────────────────────────────────────────────

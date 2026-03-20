@@ -1,11 +1,28 @@
 from __future__ import annotations
 
+import os
 import platform as platform_mod
 import shutil
 import subprocess
 from pathlib import Path
 
 from .models import DetectedTool
+
+
+def _run_git_toplevel(cwd: Path) -> Path | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=str(cwd),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0:
+            return Path(result.stdout.strip()).resolve()
+    except Exception:
+        pass
+    return None
 
 
 def _run_version_cmd(cmd: str) -> str | None:
@@ -142,8 +159,15 @@ def detect_ide() -> str:
     return "Terminal"
 
 
-def detect_all(project_root: Path | None = None) -> dict[str, any]:
-    import os
+def detect_all(project_root: Path | str | None = None) -> dict[str, any]:
+    if project_root:
+        if isinstance(project_root, str):
+            project_root = Path(project_root)
+        # Try to find git root first for better framework detection
+        git_root = _run_git_toplevel(project_root)
+        if git_root:
+            project_root = git_root
+
     results = {
         "nodejs": detect_nodejs(),
         "cursor": detect_cursor(),

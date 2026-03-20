@@ -163,5 +163,5 @@ def generate_with_ai(
     project_files_text = collect_project_context(ctx.project_path)
     messages = build_prompt(ctx, scan, project_files_text)
     
-    markdown_content = call_msl_api(messages)
+    markdown_content = call_msl_api(messages, ctx.project_path)
     return markdown_content
