@@ -4,7 +4,20 @@ import os
 import platform as platform_mod
 import shutil
 import subprocess
+import socket
 from pathlib import Path
+
+
+def get_device_info() -> str:
+    """Return a string identifying the current device."""
+    try:
+        hostname = socket.gethostname()
+        system = platform_mod.system()
+        machine = platform_mod.machine()
+        return f"{hostname} ({system} {machine})"
+    except Exception:
+        return "Unknown Device"
+
 
 from .models import DetectedTool
 
@@ -190,6 +203,42 @@ def detect_ide() -> str:
     return "Terminal"
 
 
+def collect_key_files(project_root: Path) -> dict[str, str]:
+    """Collect content of main project configuration files."""
+    interesting_files = [
+        "package.json",
+        "Cargo.toml",
+        "pubspec.yaml",
+        "pyproject.toml",
+        "requirements.txt",
+        "go.mod",
+    ]
+    
+    results = {}
+    MAX_BYTES = 50 * 1024 # 50KB limit per file
+    
+    for filename in interesting_files:
+        path = project_root / filename
+        if path.is_file():
+            try:
+                results[filename] = path.read_text(encoding="utf-8")[:MAX_BYTES]
+            except Exception: pass
+            
+    # Also collect GitHub workflows
+    workflow_dir = project_root / ".github" / "workflows"
+    if workflow_dir.is_dir():
+        for path in workflow_dir.glob("*.yml"):
+            try:
+                results[f".github/workflows/{path.name}"] = path.read_text(encoding="utf-8")[:MAX_BYTES]
+            except Exception: pass
+        for path in workflow_dir.glob("*.yaml"):
+            try:
+                results[f".github/workflows/{path.name}"] = path.read_text(encoding="utf-8")[:MAX_BYTES]
+            except Exception: pass
+                
+    return results
+
+
 def detect_all(project_root: Path | str | None = None) -> dict[str, any]:
     if project_root:
         if isinstance(project_root, str):
@@ -208,6 +257,7 @@ def detect_all(project_root: Path | str | None = None) -> dict[str, any]:
         "windsurf": detect_windsurf(),
         "antigravity": detect_antigravity(),
         "ide": detect_ide(),
+        "device_info": get_device_info(),
     }
     
     if project_root:
