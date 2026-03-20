@@ -87,11 +87,74 @@ def detect_codex() -> DetectedTool:
     return DetectedTool(name="Codex", installed=False)
 
 
-def detect_all() -> dict[str, DetectedTool]:
-    return {
+def get_project_name(project_root: Path) -> str:
+    """Return the name of the project based on the directory name."""
+    return project_root.resolve().name
+
+
+def detect_framework(project_root: Path) -> str:
+    """Detect the framework being used in the project."""
+    # Check package.json for web frameworks
+    package_json = project_root / "package.json"
+    if package_json.is_file():
+        try:
+            content = package_json.read_text()
+            if "next" in content: return "Next.js"
+            if "react-native" in content: return "React Native"
+            if "react" in content: return "React"
+            if "vue" in content: return "Vue"
+            if "svelte" in content: return "Svelte"
+            if "astro" in content: return "Astro"
+            if "nuxt" in content: return "Nuxt"
+        except Exception: pass
+
+    # Check for Python frameworks
+    if (project_root / "manage.py").is_file(): return "Django"
+    
+    requirements = project_root / "requirements.txt"
+    if requirements.is_file():
+        try:
+            content = requirements.read_text()
+            if "fastapi" in content.lower(): return "FastAPI"
+            if "flask" in content.lower(): return "Flask"
+        except Exception: pass
+
+    # Check for others
+    if (project_root / "Cargo.toml").is_file(): return "Rust"
+    if (project_root / "go.mod").is_file(): return "Go"
+    
+    return "Unknown"
+
+
+def detect_ide() -> str:
+    """Detect the IDE being used based on environment variables."""
+    term_program = os.environ.get("TERM_PROGRAM", "")
+    if "vscode" in term_program.lower() or os.environ.get("VSCODE_GIT_IPC_HANDLE"):
+        return "VS Code"
+    if os.environ.get("TERMINAL_EMULATOR") == "JetBrains-JediTerm":
+        return "JetBrains"
+    if "cursor" in term_program.lower():
+        return "Cursor"
+    if "apple_terminal" in term_program.lower():
+        return "Apple Terminal"
+    if "iterm" in term_program.lower():
+        return "iTerm2"
+    return "Terminal"
+
+
+def detect_all(project_root: Path | None = None) -> dict[str, any]:
+    import os
+    results = {
         "nodejs": detect_nodejs(),
         "cursor": detect_cursor(),
         "vscode": detect_vscode(),
         "claude-code": detect_claude_code(),
         "codex": detect_codex(),
+        "ide": detect_ide(),
     }
+    
+    if project_root:
+        results["project_name"] = get_project_name(project_root)
+        results["framework"] = detect_framework(project_root)
+        
+    return results

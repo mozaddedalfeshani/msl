@@ -15,9 +15,11 @@ MAX_FILE_BYTES = 8192
 
 
 
-def call_msl_api(messages: list[dict[str, str]]) -> str:
+def call_msl_api(messages: list[dict[str, str]], project_root: Optional[Path] = None) -> str:
     """Execute the HTTP POST to MSL API for skill generation."""
     from .auth import get_access_token, MSL_AUTH_URL
+    from .detection import detect_all
+    
     token = get_access_token()
     
     url = f"{MSL_AUTH_URL.rstrip('/')}/api/commit"
@@ -28,11 +30,24 @@ def call_msl_api(messages: list[dict[str, str]]) -> str:
     if token:
         headers["Authorization"] = f"Bearer {token}"
         
+    # Gather usage metadata
+    metadata = detect_all(project_root or Path.cwd())
+    
     # Convert messages to a simple text format for the commit API
     text_content = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
     payload = {
         "files": ["skill_generation.md"],
         "diff": text_content,
+        "metadata": {
+            "ide": metadata.get("ide", "Unknown"),
+            "project_name": metadata.get("project_name", "Unknown"),
+            "framework": metadata.get("framework", "Unknown"),
+            "cli": "msl",
+            "other_tools": {
+                "cursor": metadata.get("cursor").installed if metadata.get("cursor") else False,
+                "claude_code": metadata.get("claude-code").installed if metadata.get("claude-code") else False,
+            }
+        }
     }
     
     try:
