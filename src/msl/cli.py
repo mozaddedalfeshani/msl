@@ -127,12 +127,6 @@ def main() -> None:
     args = parser.parse_args(sys.argv[1:])
 
     configure_logging(args.verbose)
-    
-    # Automated background sync on launch (Threaded for performance - non-daemon to ensure completion)
-    import threading
-    from .ai_generator import sync_project_to_api
-    threading.Thread(target=sync_project_to_api, args=(Path.cwd(),)).start()
-    
     logger.info("Starting MSL CLI v%s", __version__)
     logger.debug("Parsed args: %s", args)
 

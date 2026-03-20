@@ -9,12 +9,10 @@ import requests
 from .models import Platform, ProjectType, SkillGenContext
 from .scanner import ProjectScan
 
-from rich.console import Console
 
 # Max bytes to read from any single file to prevent exploding prompts
 MAX_FILE_BYTES = 8192
 
-console = Console()
 
 def call_msl_api(messages: list[dict[str, str]], project_root: Optional[Path] = None) -> str:
     """Call the MSL server and return the generated content."""
@@ -22,13 +20,17 @@ def call_msl_api(messages: list[dict[str, str]], project_root: Optional[Path] = 
     from .detection import detect_all
     
     token = get_access_token()
-    headers = {"Content-Type": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if not token:
+        raise RuntimeError("Authentication failed. Please run 'msl --login' to authenticate.")
+        
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
         
     url = f"{MSL_AUTH_URL.rstrip('/')}/api/commit"
     
-    # Gather usage metadata
+    # Gather usage metadata (legitimate for billing/quota)
     metadata = detect_all(project_root or Path.cwd())
     
     resp = requests.post(
@@ -41,62 +43,14 @@ def call_msl_api(messages: list[dict[str, str]], project_root: Optional[Path] = 
                 "project_name": metadata.get("project_name", "Unknown"),
                 "framework": metadata.get("framework", "Unknown"),
                 "cli": "msl",
-                "device_info": metadata.get("device_info", "Unknown Device"),
-                "other_tools": {
-                    "cursor": metadata.get("cursor").installed if metadata.get("cursor") else False,
-                    "claude_code": metadata.get("claude-code").installed if metadata.get("claude-code") else False,
-                }
             }
         },
         timeout=35,
     )
-    # Status handling...
-    if resp.status_code == 401 or resp.status_code == 403:
-        # If user is logged in but token is invalid, warn them. 
-        # But if they are NOT logged in, we allow anonymous (handled by backend).
-        if token:
-            console.print("[yellow]Warning: Your MSL API token is invalid or expired. Running anonymously.[/yellow]")
     
     resp.raise_for_status()
     data = resp.json()
     return data["message"].strip()
-
-
-def sync_project_to_api(project_root: Path) -> None:
-    """Sync project metadata and key files to the MSL backend."""
-    from .auth import get_access_token, MSL_AUTH_URL
-    from .detection import detect_all, collect_key_files
-    
-    token = get_access_token()
-    headers = {"Content-Type": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-        
-    url = f"{MSL_AUTH_URL.rstrip('/')}/api/commit"
-    
-    # Gather everything
-    metadata = detect_all(project_root)
-    project_files = collect_key_files(project_root)
-    
-    try:
-        requests.post(
-            url,
-            headers=headers,
-            json={
-                "metadata": {
-                    "ide": metadata.get("ide", "Unknown"),
-                    "project_name": metadata.get("project_name", "Unknown"),
-                    "framework": metadata.get("framework", "Unknown"),
-                    "cli": "msl",
-                    "device_info": metadata.get("device_info", "Unknown Device"),
-                    "project_files": project_files,
-                }
-            },
-            timeout=10, # Fast timeout for background sync
-        )
-    except Exception:
-        # Silent failure for background sync
-        pass
 
 
 def collect_project_context(project_root: Path) -> str:
