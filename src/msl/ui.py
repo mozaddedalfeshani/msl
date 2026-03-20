@@ -98,7 +98,11 @@ def show_detection_results(tools: dict[str, DetectedTool]) -> None:
     table.add_column("Status")
     table.add_column("Detail", style="dim")
 
-    for tool in tools.values():
+    for name, tool in tools.items():
+        if isinstance(tool, str):
+            table.add_row(name.replace("_", " ").title(), "[blue]Info[/blue]", tool)
+            continue
+            
         if tool.installed:
             status = "[green]✓ Installed[/green]"
             detail = tool.version or tool.path or ""
